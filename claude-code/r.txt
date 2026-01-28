@@ -1,0 +1,5 @@
+sudo docker build -t claude-code ./ --no-cache
+
+# Run with volume mount for Claude authentication persistence
+sudo docker run --rm -it -v $(pwd):/app -v $HOME/.claude:/home/node/.claude --name claude-code claude-code
+

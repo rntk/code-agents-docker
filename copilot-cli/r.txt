@@ -1,0 +1,5 @@
+sudo docker build -t copilot ./ --no-cache
+
+
+sudo docker run --rm -it -v $(pwd):/app -v $HOME/.copilot:/home/node/.copilot --name copilot copilot
+

@@ -1,0 +1,7 @@
+FROM node:24-slim
+
+RUN npm install -g @google/gemini-cli
+
+WORKDIR /app
+
+CMD ["gemini"]

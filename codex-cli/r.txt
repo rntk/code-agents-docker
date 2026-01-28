@@ -1,0 +1,7 @@
+sudo docker build -t codex-cli --no-cache .
+
+sudo docker run --rm -it -v "$HOME/.codex":/home/node/.codex -v $(pwd):/app -e OPENAI_API_KEY=$OPENAI_API_KEY --name codex-cli codex-cli
+
+sudo docker run --rm -it -v "$HOME/.codex":/home/node/.codex -v $(pwd):/app --name codex-cli codex-cli login --device-auth
+
+ 
