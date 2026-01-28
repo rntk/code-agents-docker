@@ -1,4 +1,0 @@
-sudo docker build -t devstral-cli ./ --no-cache
-
-sudo docker run --rm -it -v $(pwd):/app -v $HOME/.vibe:/root/.vibe -e MISTRAL_API_KEY=$MISTRAL_API_KEY --name devstral-cli devstral-cli
-

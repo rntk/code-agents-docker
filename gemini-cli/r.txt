@@ -1,8 +1,0 @@
-sudo docker build ./ -t gemini-cli -f Dockerfile.cli --no-cache
-
-sudo docker run --rm -it -v $(pwd):/app -e GEMINI_API_KEY=$GEMINI_API_KEY --name gemini-cli gemini-cli
-
-
-export GEMINI_API_KEY="YOUR_API_KEY"
-
-
