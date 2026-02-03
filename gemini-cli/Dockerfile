@@ -1,6 +1,6 @@
 FROM node:24-slim
 
-# Pin Gemini CLI version for reproducibility
+# Configure Gemini CLI version via build-arg
 ARG GEMINI_VERSION=latest
 RUN npm install -g "@google/gemini-cli@${GEMINI_VERSION}"
 

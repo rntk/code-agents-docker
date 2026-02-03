@@ -1,4 +1,4 @@
-.PHONY: build-all run-all clean
+.PHONY: build-all run clean
 
 # Build all Docker images
 build-all:

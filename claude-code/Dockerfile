@@ -5,7 +5,7 @@ ARG VERSION=""
 
 FROM node:24-slim
 
-# Pin Claude Code version for reproducibility
+# Configure Claude Code version via build-arg
 ARG CLAUDE_VERSION=latest
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}"
 

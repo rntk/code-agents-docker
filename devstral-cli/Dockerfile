@@ -16,17 +16,20 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 RUN pip install uv
 
-# Install mistral-vibe
-# Ensure the directory where uv installs tools is in the PATH
-ENV PATH="/home/appuser/.local/bin:$PATH"
-RUN uv tool install mistral-vibe
-
 # Set working directory and change ownership
 WORKDIR /app
 RUN chown -R appuser:appuser /app
 
+# Ensure appuser's local bin is on PATH and writable
+RUN mkdir -p /home/appuser/.local/bin && \
+    chown -R appuser:appuser /home/appuser/.local
+ENV PATH="/home/appuser/.local/bin:$PATH"
+
 # Switch to non-root user
 USER appuser
+
+# Install mistral-vibe for the runtime user
+RUN uv tool install mistral-vibe
 
 # The container is intended to be run with a mounted volume at /app
 # Example: docker run -v $(pwd):/app -v ~/.vibe:/home/appuser/.vibe -e MISTRAL_API_KEY=your_key my-mistral-vibe-image

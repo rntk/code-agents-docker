@@ -21,7 +21,7 @@ RUN apk add --no-cache \
     sed \
     gawk
 
-# Pin Codex CLI version via build-arg for reproducibility
+# Configure Codex CLI version via build-arg
 ARG CODEX_VERSION=latest
 
 # Install Codex CLI globally with BuildKit cache and clean npm cache

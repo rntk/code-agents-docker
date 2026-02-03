@@ -1,6 +1,6 @@
 FROM node:24-slim
 
-# Pin Copilot CLI version for reproducibility
+# Configure Copilot CLI version via build-arg
 ARG COPILOT_VERSION=latest
 RUN npm install -g "@github/copilot@${COPILOT_VERSION}"
 

@@ -37,7 +37,7 @@ make run CLI=<cli-name>
 - **Config persistence**: Authentication/config directories mounted from host home directory
 - **Non-root execution**: All containers run as non-root users for security
 - **Optimized builds**: Uses `.dockerignore` to exclude unnecessary files
-- **Version pinning**: Package versions are pinned for reproducible builds
+- **Version control**: CLI versions are configurable via Docker build arguments
 - **Standardized documentation**: Consistent README structure across all CLIs
 
 ## Requirements
