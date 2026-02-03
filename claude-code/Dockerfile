@@ -1,8 +1,15 @@
+# OCI labels for metadata
+ARG VCS_REF=""
+ARG BUILD_DATE=""
+ARG VERSION=""
+
 FROM node:24-slim
 
-WORKDIR /app
+# Pin Claude Code version for reproducibility
+ARG CLAUDE_VERSION=latest
+RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}"
 
-RUN npm install -g @anthropic-ai/claude-code
+WORKDIR /app
 
 # Change ownership of app directory to node user
 RUN chown -R node:node /app

@@ -4,14 +4,14 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 
 ## Included CLIs
 
-| Directory | CLI | Provider | Base Image |
-|-----------|-----|----------|------------|
-| [claude-code](./claude-code/) | Claude Code | Anthropic | Node.js 24 |
-| [codex-cli](./codex-cli/) | Codex CLI | OpenAI | Node.js 24 Alpine |
-| [copilot-cli](./copilot-cli/) | Copilot CLI | GitHub | Node.js 24 |
-| [devstral-cli](./devstral-cli/) | Vibe CLI | Mistral | Python 3.13 |
-| [gemini-cli](./gemini-cli/) | Gemini CLI | Google | Node.js 24 |
-| [kimi-cli](./kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 |
+| Directory | CLI | Provider | Base Image | Non-Root |
+|-----------|-----|----------|------------|-----------|
+| [claude-code](./claude-code/) | Claude Code | Anthropic | Node.js 24 | Yes |
+| [codex-cli](./codex-cli/) | Codex CLI | OpenAI | Node.js 24 Alpine | Yes |
+| [copilot-cli](./copilot-cli/) | Copilot CLI | GitHub | Node.js 24 | Yes |
+| [devstral-cli](./devstral-cli/) | Vibe CLI | Mistral | Python 3.13 | Yes |
+| [gemini-cli](./gemini-cli/) | Gemini CLI | Google | Node.js 24 | Yes |
+| [kimi-cli](./kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 | Yes |
 
 ## Quick Start
 
@@ -23,12 +23,22 @@ docker build -t <image-name> .
 docker run --rm -it -v $(pwd):/app <image-name>
 ```
 
+Alternatively, use the provided Makefile to build all images at once:
+
+```bash
+make build-all
+make run CLI=<cli-name>
+```
+
 ## Common Features
 
 - **Isolated environments**: Each CLI runs in its own container with required dependencies
 - **Volume mounts**: Current directory mounted to `/app` for working with local code
 - **Config persistence**: Authentication/config directories mounted from host home directory
-- **Non-root execution**: Where applicable, containers run as non-root users for security
+- **Non-root execution**: All containers run as non-root users for security
+- **Optimized builds**: Uses `.dockerignore` to exclude unnecessary files
+- **Version pinning**: Package versions are pinned for reproducible builds
+- **Standardized documentation**: Consistent README structure across all CLIs
 
 ## Requirements
 

@@ -1,8 +1,10 @@
 FROM node:24-slim
 
-WORKDIR /app
+# Pin Copilot CLI version for reproducibility
+ARG COPILOT_VERSION=latest
+RUN npm install -g "@github/copilot@${COPILOT_VERSION}"
 
-RUN npm install -g @github/copilot
+WORKDIR /app
 
 # Change ownership of app directory to node user
 RUN chown -R node:node /app
