@@ -9,7 +9,9 @@ Generate a project-specific Dockerfile that gives an AI coding CLI agent everyth
 1. **If the project has its own Dockerfile** — use it as the starting point and add the coding agent into it (Strategy A)
 2. **If the project has no Dockerfile** — choose an appropriate base image, install all required runtimes and tools natively, then add the coding agent (Strategy B)
 
-Prefer reusing the project's proven Dockerfile when available. For projects without Dockerfiles, select a base image that matches the project's needs while keeping images lean, reproducible, and secure.
+Prefer reusing the project's proven Dockerfile when available. For projects without Dockerfiles, select a base image that matches the project's needs.
+
+**Crucially, the generated Dockerfile must pre-install all project dependencies** so the environment is fully ready for testing and execution immediately upon startup.
 
 ## Inputs
 
@@ -18,10 +20,6 @@ You will be provided with:
 1. **`PROJECT_DIR`** — Absolute path to the target project directory to analyze
 2. **`CLI_AGENT`** — Name of the AI coding CLI to use (one of: `claude-code`, `codex-cli`, `copilot-cli`, `devstral-cli`, `gemini-cli`, `kimi-cli`)
 3. **`DOCKERFILES_REPO`** — Path to this repository containing the base Dockerfile templates
-
-## Procedure
-
-Follow these steps in order. Do NOT skip steps.
 
 ---
 
@@ -41,7 +39,7 @@ You will use these facts to add the CLI agent into the generated Dockerfile.
 
 ### Step 2: Analyze the Target Project
 
-Scan `{PROJECT_DIR}` to detect the project's technology stack. Check for the presence of the following files and directories. For each detected item, record what it implies.
+Analyze the target project at `{PROJECT_DIR}` and detect the project's technology stack. Check for the presence of the following files and directories. For each detected item, record what it implies.
 
 #### 2.1 Programming Languages
 
@@ -103,16 +101,16 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 
 **How**:
 1. Read the project's Dockerfile and understand its base image, installed packages, and user setup
-2. Extend it by adding the CLI agent installation
-3. Set the CLI agent executable as the container `ENTRYPOINT` for agent mode
+2. Create a new Dockerfile that strictly reproduces the project's environment (base image, system deps, project dependencies)
+3. Extend it by adding the CLI agent installation
+4. Set the CLI agent executable as the container `ENTRYPOINT` for agent mode
 
 **Key considerations**:
-- If the project uses a multi-stage build, base your work on the **final stage** (the runtime image), not a build stage
-- If the project Dockerfile doesn't set up a non-root user, add one
-- The project Dockerfile may already `COPY` source code — remove only source-copy lines; keep `COPY` of required runtime assets (certs, scripts, migrations, config templates)
-- Remove `EXPOSE` directives unless they are still needed by retained startup or helper tooling
-- Keep all `RUN` lines that install system packages, runtimes, and tools
-- Keep existing init/wrapper scripts unless they are clearly app-server-only and conflict with agent mode
+- If the project uses a multi-stage build, base your work on the **final stage** (the runtime image), but ensure development dependencies (like test runners) are included.
+- **Ensure project dependencies are installed**: Keep `COPY` instructions for dependency manifests (e.g., `package.json`, `requirements.txt`) and their corresponding `RUN` install commands.
+- If the project Dockerfile doesn't set up a non-root user, add one.
+- Remove `EXPOSE` directives unless they are still needed by retained startup or helper tooling.
+- Keep existing init/wrapper scripts unless they are clearly app-server-only and conflict with agent mode.
 
 #### Strategy B: No Project Dockerfile — Choose Appropriate Base
 
@@ -192,19 +190,23 @@ Using the information from Steps 1–3, create a Dockerfile. Follow these rules 
 
 2. **Install language runtimes before the CLI tool**. The AI agent CLI must be installed after all runtimes are available so it can detect and use them.
 
-3. **Do NOT install project dependencies** (no `npm install`, `pip install -r requirements.txt`, etc. for the project itself). The Dockerfile sets up the environment — the AI agent will handle project dependency installation at runtime.
+3. **INSTALL project dependencies**:
+   - `COPY` dependency manifest files (e.g., `package.json`, `go.mod`, `poetry.lock`, `requirements.txt`) into the image.
+   - `RUN` the appropriate install command (e.g., `npm install`, `pip install -r requirements.txt`, `go mod download`).
+   - The goal is to make the image "ready-to-run" for tests and scripts.
 
 4. **Install global tools sparingly**:
-   - Install a global tool only if explicitly detected in project config and not already project-managed
-   - Prefer runtime-native execution first (e.g., `npm test`, `npx eslint`, `python -m pytest`) before adding global installs
-   - Keep global installs version-pinned (`tool@x.y.z`) when possible
-   - **Do NOT install**: Project dependencies from `requirements.txt`, `package.json` dependencies, or `go.mod` — let the agent handle these at runtime
+   - If a tool is strictly required by the project but not in the dependency file (e.g., a global CLI tool), install it.
+   - Otherwise, prefer the project-installed version (e.g., `npx eslint`, `poetry run pytest`).
+   - Keep global installs version-pinned (`tool@x.y.z`) when possible.
 
 5. **Set `ENTRYPOINT`** to the CLI agent command (e.g., `ENTRYPOINT ["claude"]`).
 
 6. **Always create a non-root user** if one doesn't exist. Use `appuser` with UID 1000.
 
-7. **Do NOT COPY project source code**. The project directory is volume-mounted at `/app` at runtime.
+7. **Source Code**:
+   - You MAY `COPY . .` if it simplifies the "ready-to-run" state, but be aware that the agent will likely volume-mount the workspace at runtime.
+   - If you `COPY . .`, ensure it happens **after** dependency installation to preserve layer caching.
 
 8. **Layer ordering for cache efficiency**: Order layers from least to most frequently changing:
    - System packages (rarely change)
@@ -238,8 +240,8 @@ ARG {CLI}_VERSION=latest
 RUN npm install -g "{CLI_NPM_PACKAGE}@${{{CLI}_VERSION}}"
 
 # --- Install global development tools detected in the project ---
+# (Only if not managed by project configuration)
 # RUN pip install pytest ruff mypy
-# RUN npm install -g jest eslint prettier
 
 # --- Working directory ---
 WORKDIR /app
@@ -281,23 +283,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     {DETECTED_SYSTEM_PACKAGES} \
     && rm -rf /var/lib/apt/lists/*
 
-# --- Language runtimes ---
-# Install each runtime needed by the project.
+
+# --- Language runtimes AND Project Dependencies ---
+# Install runtimes and then project dependencies.
+
 # Example for Node.js:
 # RUN apt-get update && apt-get install -y --no-install-recommends nodejs npm && \
 #     rm -rf /var/lib/apt/lists/*
+# COPY package.json package-lock.json ./
+# RUN npm install
 
 # Example for Python:
 # RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
 #     rm -rf /var/lib/apt/lists/*
+# COPY requirements.txt ./
+# RUN pip install -r requirements.txt
 
 # --- Install the AI coding CLI ---
 ARG {CLI}_VERSION=latest
 # (use the appropriate install method from the reference Dockerfile)
 # RUN npm install -g "{CLI_NPM_PACKAGE}@${{{CLI}_VERSION}}"
 
-# --- Install only required global tools (if detected) ---
-# RUN pip install "ruff==0.6.9"
+# --- Install only required global tools ---
+# (Prefer project-local tools where possible)
 # RUN npm install -g "eslint@9.12.0"
 
 # --- Non-root user setup ---
@@ -324,8 +332,9 @@ ENTRYPOINT ["{CLI_COMMAND}"]
 
 - **Must include**: chosen strategy (`A` or `B`), detected stack summary, and explicit reason for base image choice
 - **Must include**: CLI version `ARG` defaulting to `latest`, non-root user, `/app` workdir, and cleanup of package manager caches
-- **Must not include**: unverified `curl | bash` installers, project dependency install commands, or `COPY . .` for project source
-- **Must explain**: any global tool installed and why it was needed
+- **Must include**: `COPY` and `RUN` instructions to install project dependencies
+- **Must not include**: unverified `curl | bash` installers without checksums
+- **Must explain**: any global tool installed and why it was needed (vs using project deps)
 
 ---
 
@@ -336,8 +345,8 @@ After generating the Dockerfile, run this checklist:
 1. **Syntax and build**: `docker build -t test-{cli-agent} -f Dockerfile.{cli-agent} .` succeeds
 2. **Layer ordering**: System packages -> runtimes -> CLI tool -> optional global tools -> user switch -> entrypoint
 3. **User consistency**: The non-root user is set up and matches throughout the file
-4. **No project deps**: Confirm you did NOT add `RUN npm install` or `RUN pip install -r requirements.txt` for the project's own dependencies
-5. **No source COPY**: Confirm you did NOT copy project source code into the image (except required runtime assets)
+4. **Project deps installed**: Confirm you added `COPY` and `RUN` instructions for project dependencies (e.g. `npm install`)
+5. **Context aware**: Confirm you used file system tools to verify file existence before `COPY`ing
 6. **Entrypoint rule**: `ENTRYPOINT` is set to the CLI agent command
 7. **All detected tools accounted for**: Cross-reference Step 2 findings with installed packages
 8. **CLI command works**: `docker run --rm test-{cli-agent} --version`
@@ -407,6 +416,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Python package manager (from project)
 RUN pip install poetry
+# Install dependencies
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false && poetry install
 
 # Node.js (required for Claude Code CLI)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -434,13 +446,11 @@ ENTRYPOINT ["claude"]
 ```
 
 **What changed vs the project's original Dockerfile:**
-- Removed `COPY . .` and `RUN poetry install` (agent handles deps at runtime)
 - Replaced app default command with `ENTRYPOINT ["claude"]` for agent mode
 - Added Node.js (required by Claude Code)
 - Added Claude Code CLI
-- Added global dev tools: pytest, ruff, mypy
 - Added non-root user setup
-- Set `ENTRYPOINT ["claude"]`
+- Retained `poetry install` to ensure environment is ready
 
 ---
 
@@ -463,8 +473,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git make \
     && rm -rf /var/lib/apt/lists/*
+    
+# Go runtime (multi-arch aware) and dependencies
+# ... (Go installation) ...
 
-# Go runtime (multi-arch aware)
 ARG GO_VERSION=1.23.7
 ARG TARGETARCH
 RUN case "$TARGETARCH" in \
@@ -477,6 +489,11 @@ RUN case "$TARGETARCH" in \
     sha256sum -c "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz.sha256" && \
     tar -C /usr/local -xzf "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
 ENV PATH="/usr/local/go/bin:$PATH"
+
+# Install project dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
 
 # Node.js (required for Claude Code)
 RUN apt-get update && apt-get install -y --no-install-recommends nodejs npm && \
@@ -508,8 +525,9 @@ ENTRYPOINT ["claude"]
 
 - **Strategy A first**: Always check for a project Dockerfile before falling back to Strategy B. The project's own Dockerfile is the most reliable source of truth for what the project needs.
 - **Multi-stage builds**: Safe when using compatible official images. Avoid copying runtimes between incompatible images.
-- The goal is to give the AI coding agent everything it needs to **analyze, test, lint, and build** the target project
-- The agent itself will clone/mount the project and install project-level dependencies at runtime
-- Keep the image as lean as possible — only install what is actually detected in the project
+- The goal is to give the AI coding agent everything it needs to **analyze, test, lint, and build** the target project immediately
+- **Pre-install dependencies**: The image should contain all project-level dependencies (via `COPY` + `RUN install`)
+- Keep the image as lean as possible, but prioritize readiness over size
+- Prefer deterministic installs over convenience scripts (`curl | bash`)
 - Prefer deterministic installs over convenience scripts (`curl | bash`)
 - Set `ENTRYPOINT` to the agent CLI so the container always starts in agent mode
