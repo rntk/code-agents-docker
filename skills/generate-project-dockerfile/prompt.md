@@ -27,6 +27,10 @@ Read `{DOCKERFILES_REPO}/{CLI_AGENT}/Dockerfile` to extract:
 - Config directories (e.g., `/home/node/.claude`)
 - Build ARGs for version pinning
 
+Also read `{DOCKERFILES_REPO}/{CLI_AGENT}/README.md` to extract:
+- Run examples and required parameters (e.g., mounting config directories, environment variables, command-line flags like `-a never` for codex-cli)
+- Any agent-specific runtime instructions or configurations
+
 ---
 
 ### Step 2: Analyze the Target Project
@@ -137,7 +141,7 @@ Before generating, examine existing project-specific Dockerfiles in `{DOCKERFILE
 
 **Output:**
 - Save as `Dockerfile.{CLI_AGENT}` in the current project directory
-- Create or update `README.agents_docker.md` with brief build/run instructions (keep it concise, not wordy). If the file already exists, append new information rather than rewriting completely, as it may contain information for other agents.
+- Add brief build/run instructions as comments at the top of the Dockerfile (keep it concise, not wordy). Include the generated-for project name, strategy used, base image, detected tech stack, required environment variables, and complete run examples from the agent-specific README (e.g., mounting config directories, command-line parameters like `-a never` for codex-cli).
 
 **Must Include:**
 - Strategy choice (A/B) and rationale
