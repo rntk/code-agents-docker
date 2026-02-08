@@ -9,7 +9,7 @@ Generate a project-specific Dockerfile that gives an AI coding CLI agent everyth
 1. **If the project has its own Dockerfile** — use it as the starting point and add the coding agent into it (Strategy A)
 2. **If the project has no Dockerfile** — choose an appropriate base image, install all required runtimes and tools natively, then add the coding agent (Strategy B)
 
-Prefer reusing the project's proven Dockerfile when available. For projects without Dockerfiles, select a base image that matches the project's needs while keeping images lean and efficient.
+Prefer reusing the project's proven Dockerfile when available. For projects without Dockerfiles, select a base image that matches the project's needs while keeping images lean, reproducible, and secure.
 
 ## Inputs
 
@@ -104,45 +104,46 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 **How**:
 1. Read the project's Dockerfile and understand its base image, installed packages, and user setup
 2. Extend it by adding the CLI agent installation
-3. If the project Dockerfile uses a final `CMD` or `ENTRYPOINT` for the application itself, **replace it** with the CLI agent entrypoint
+3. Set the CLI agent executable as the container `ENTRYPOINT` for agent mode
 
 **Key considerations**:
 - If the project uses a multi-stage build, base your work on the **final stage** (the runtime image), not a build stage
 - If the project Dockerfile doesn't set up a non-root user, add one
-- The project Dockerfile may already `COPY` source code — **remove those lines** since the code will be volume-mounted at runtime
-- Remove any `EXPOSE` directives (not needed for a CLI agent)
+- The project Dockerfile may already `COPY` source code — remove only source-copy lines; keep `COPY` of required runtime assets (certs, scripts, migrations, config templates)
+- Remove `EXPOSE` directives unless they are still needed by retained startup or helper tooling
 - Keep all `RUN` lines that install system packages, runtimes, and tools
+- Keep existing init/wrapper scripts unless they are clearly app-server-only and conflict with agent mode
 
 #### Strategy B: No Project Dockerfile — Choose Appropriate Base
 
 **When to use**: The target project has no Dockerfile, or its Dockerfile is unsuitable (e.g., scratch image, distroless, heavily application-specific).
 
 **Base image decision tree**:
-1. **Single runtime, simple deps, no compiled extensions?** → Consider Alpine-based images (e.g., `node:20-alpine`, `python:3.13-alpine`) for minimal size
+1. **Official slim image available for primary runtime?** → Prefer Debian/Ubuntu slim images first (e.g., `node:20-slim`, `python:3.13-slim`)
 2. **Multiple heavy runtimes or complex system deps?** → Use `ubuntu:24.04` for broad compatibility
-3. **Official slim images available?** → Prefer them over Ubuntu when they meet requirements (e.g., `node:20-slim`, `python:3.13-slim`)
+3. **Alpine considered?** → Use Alpine only when dependencies are known to be musl-compatible and native extensions are minimal
 
-**Why**: Alpine images are smaller but may require additional system packages for compiled extensions. Ubuntu provides the broadest compatibility but at higher image size. Official slim images offer a good middle ground.
+**Why**: Debian/Ubuntu slim images provide strong compatibility with modest size. Ubuntu provides the broadest compatibility but at higher image size. Alpine is smaller but can break native dependencies (musl vs glibc).
 
 **How**:
 1. Start from the chosen base image
-2. Install all required language runtimes via `apt-get` or official install scripts
+2. Install all required language runtimes via distro packages or verified official binaries
 3. Install the AI coding CLI agent
-4. Install global development tools
+4. Install only explicitly detected global development tools that are not already project-managed
 5. Set up a non-root user
 
 **Runtime installation methods on Ubuntu:**
 
 | Runtime | Installation |
 |---------|-------------|
-| **Node.js** | `curl -fsSL https://deb.nodesource.com/setup_24.x \| bash - && apt-get install -y nodejs` |
+| **Node.js** | Prefer distro package or official Node image. If using NodeSource, add signed repo key + apt source (avoid `curl \| bash`) |
 | **Python** | `apt-get install -y python3 python3-pip python3-venv` (system Python) or install via `deadsnakes` PPA for a specific version |
-| **Go** | `curl -fsSL https://go.dev/dl/go1.23.linux-amd64.tar.gz \| tar -C /usr/local -xzf -` + add to PATH |
-| **Rust** | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh -s -- -y` (as non-root user) |
+| **Go** | Download official tarball per arch (`TARGETARCH`) and verify checksum before extract |
+| **Rust** | Install rustup via verified installer/checksum, as non-root user |
 | **Ruby** | `apt-get install -y ruby-full` |
 | **Java** | `apt-get install -y openjdk-21-jdk` |
 | **PHP** | `apt-get install -y php-cli php-mbstring php-xml php-curl` |
-| **.NET** | Use Microsoft's install script: `curl -fsSL https://dot.net/v1/dotnet-install.sh \| bash -s -- --channel 8.0` |
+| **.NET** | Prefer Microsoft apt repo packages for reproducible installs |
 | **Elixir** | `apt-get install -y elixir` |
 
 **CLI agent installation on Ubuntu:**
@@ -154,7 +155,7 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 | `copilot-cli` | Requires Node.js. `npm install -g @github/copilot` |
 | `gemini-cli` | Requires Node.js. `npm install -g @google/gemini-cli` |
 | `devstral-cli` | Requires Python + uv. `pip install uv && uv tool install mistral-vibe` |
-| `kimi-cli` | Requires Python. `curl -L code.kimi.com/install.sh \| bash` |
+| `kimi-cli` | Requires Python. Prefer a versioned package/binary install from the reference Dockerfile; avoid unverified shell piping |
 
 ---
 
@@ -163,6 +164,21 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 **Multi-platform builds**: Support both AMD64 and ARM64 architectures when possible. Use `docker buildx build --platform linux/amd64,linux/arm64` for builds. Note that some runtime installers (like Go downloads) may need platform-specific URLs.
 
 **Performance considerations**: On ARM64 systems (M1/M2 Macs), prefer native ARM64 images over Rosetta translation. Official slim images often have better ARM64 support than Ubuntu.
+
+When downloading runtime tarballs, map architecture explicitly:
+
+```dockerfile
+ARG TARGETARCH
+RUN case "$TARGETARCH" in \
+      amd64) GO_ARCH='amd64' ;; \
+      arm64) GO_ARCH='arm64' ;; \
+      *) echo "Unsupported arch: $TARGETARCH" && exit 1 ;; \
+    esac && \
+    curl -fsSLO "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" && \
+    curl -fsSLO "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz.sha256" && \
+    sha256sum -c "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz.sha256" && \
+    tar -C /usr/local -xzf "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
+```
 
 ---
 
@@ -178,14 +194,13 @@ Using the information from Steps 1–3, create a Dockerfile. Follow these rules 
 
 3. **Do NOT install project dependencies** (no `npm install`, `pip install -r requirements.txt`, etc. for the project itself). The Dockerfile sets up the environment — the AI agent will handle project dependency installation at runtime.
 
-4. **DO install global tools** that the agent needs for analysis, testing, and development:
-   - **Testing runners**: Tools like `pytest`, `jest`, `mocha` that execute tests (install globally)
-   - **Linters/formatters**: `eslint`, `prettier`, `ruff`, `mypy` (install globally)
-   - **Build tools**: `make`, `cmake`, `webpack`, `vite` (install globally)
-   - **Package managers**: `yarn`, `pnpm`, `poetry` (install globally)
+4. **Install global tools sparingly**:
+   - Install a global tool only if explicitly detected in project config and not already project-managed
+   - Prefer runtime-native execution first (e.g., `npm test`, `npx eslint`, `python -m pytest`) before adding global installs
+   - Keep global installs version-pinned (`tool@x.y.z`) when possible
    - **Do NOT install**: Project dependencies from `requirements.txt`, `package.json` dependencies, or `go.mod` — let the agent handle these at runtime
 
-5. **Set the ENTRYPOINT/CMD** to the CLI agent command (e.g., `claude`, `codex`, `gemini`).
+5. **Set `ENTRYPOINT`** to the CLI agent command (e.g., `ENTRYPOINT ["claude"]`).
 
 6. **Always create a non-root user** if one doesn't exist. Use `appuser` with UID 1000.
 
@@ -211,14 +226,14 @@ Using the information from Steps 1–3, create a Dockerfile. Follow these rules 
 # --- Reproduce the project's runtime environment ---
 # (Adapted from the project's Dockerfile — keep all RUN lines that install
 #  system packages, runtimes, and tools. Remove COPY lines for source code,
-#  EXPOSE directives, and the application CMD/ENTRYPOINT.)
+#  optional EXPOSE directives, and app-server-only command defaults.)
 
 FROM {PROJECT_BASE_IMAGE}
 
 # ... (system packages and runtime setup from project Dockerfile) ...
 
 # --- Install the AI coding CLI ---
-# Version pinning: Use ARG with default 'latest' for flexibility, but pin major versions for runtimes
+# CLI versioning: default to latest; allow override via --build-arg for reproducibility
 ARG {CLI}_VERSION=latest
 RUN npm install -g "{CLI_NPM_PACKAGE}@${{{CLI}_VERSION}}"
 
@@ -232,28 +247,28 @@ WORKDIR /app
 # --- Non-root user setup ---
 # (reuse the project's user if one exists, otherwise create one)
 RUN useradd -r -m -u 1000 appuser || true
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app && chown appuser:appuser /app
 RUN mkdir -p /home/appuser/.{cli_config_dir} && \
     chown -R appuser:appuser /home/appuser/.{cli_config_dir}
 USER appuser
 
 ENV PATH="/home/appuser/.local/bin:$PATH"
 
-# --- CLI agent entrypoint (replaces the project's application CMD) ---
+# --- CLI agent entrypoint (agent mode default) ---
 ENTRYPOINT ["{CLI_COMMAND}"]
 ```
 
-#### 4.3 Template for Strategy B (Ubuntu Universal Base)
+#### 4.3 Template for Strategy B (Slim/Ubuntu Base)
 
 ```dockerfile
 # =============================================================================
 # Project-Specific Dockerfile for {CLI_AGENT}
 # Generated for: {PROJECT_NAME}
-# Base: ubuntu:24.04 (universal)
+# Base: {CHOSEN_BASE_IMAGE}
 # Detected stack: {SUMMARY_OF_DETECTED_TECH}
 # =============================================================================
 
-FROM ubuntu:24.04
+FROM {CHOSEN_BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -269,8 +284,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # --- Language runtimes ---
 # Install each runtime needed by the project.
 # Example for Node.js:
-# RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
-#     apt-get install -y nodejs
+# RUN apt-get update && apt-get install -y --no-install-recommends nodejs npm && \
+#     rm -rf /var/lib/apt/lists/*
 
 # Example for Python:
 # RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
@@ -281,15 +296,15 @@ ARG {CLI}_VERSION=latest
 # (use the appropriate install method from the reference Dockerfile)
 # RUN npm install -g "{CLI_NPM_PACKAGE}@${{{CLI}_VERSION}}"
 
-# --- Install global development tools ---
-# RUN pip install pytest ruff mypy
-# RUN npm install -g jest eslint prettier
+# --- Install only required global tools (if detected) ---
+# RUN pip install "ruff==0.6.9"
+# RUN npm install -g "eslint@9.12.0"
 
 # --- Non-root user setup ---
 RUN useradd -r -m -u 1000 -s /bin/bash appuser
 
 WORKDIR /app
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app && chown appuser:appuser /app
 RUN mkdir -p /home/appuser/.{cli_config_dir} && \
     chown -R appuser:appuser /home/appuser/.{cli_config_dir}
 
@@ -305,35 +320,33 @@ ENTRYPOINT ["{CLI_COMMAND}"]
 - Also create/update a single `README.agents_docker.md` with just a couple instructions of how to build and run
 - If generating a `.dockerignore`, exclude: `node_modules/`, `venv/`, `__pycache__/`, `.git/`, build artifacts, test outputs, IDE configs
 
+#### 4.5 Output Contract (Must/Must-Not)
+
+- **Must include**: chosen strategy (`A` or `B`), detected stack summary, and explicit reason for base image choice
+- **Must include**: CLI version `ARG` defaulting to `latest`, non-root user, `/app` workdir, and cleanup of package manager caches
+- **Must not include**: unverified `curl | bash` installers, project dependency install commands, or `COPY . .` for project source
+- **Must explain**: any global tool installed and why it was needed
+
 ---
 
-### Step 5: Validate the Dockerfile
+### Step 5: Validate and Verify the Dockerfile
 
-After generating the Dockerfile, verify:
+After generating the Dockerfile, run this checklist:
 
-1. **Syntax**: The Dockerfile is valid (no obvious syntax errors)
-2. **Layer ordering**: System packages -> runtimes -> CLI tool -> global tools -> user switch -> entrypoint
+1. **Syntax and build**: `docker build -t test-{cli-agent} -f Dockerfile.{cli-agent} .` succeeds
+2. **Layer ordering**: System packages -> runtimes -> CLI tool -> optional global tools -> user switch -> entrypoint
 3. **User consistency**: The non-root user is set up and matches throughout the file
 4. **No project deps**: Confirm you did NOT add `RUN npm install` or `RUN pip install -r requirements.txt` for the project's own dependencies
-5. **No source COPY**: Confirm you did NOT `COPY` project source code into the image
-6. **Entrypoint correct**: The CLI agent entrypoint is set (not the project's application entrypoint)
+5. **No source COPY**: Confirm you did NOT copy project source code into the image (except required runtime assets)
+6. **Entrypoint rule**: `ENTRYPOINT` is set to the CLI agent command
 7. **All detected tools accounted for**: Cross-reference Step 2 findings with installed packages
-8. **Runtime test**: Mentally verify — "Can the AI agent run `pytest`, `npm test`, `go test`, etc. inside this container?"
-
----
-
-### Step 6: Verify the Generated Dockerfile
-
-After generating the Dockerfile, test it to ensure it works:
-
-1. **Build the image**: `docker build -t test-{cli-agent} -f Dockerfile.{cli-agent} .`
-2. **Verify CLI agent runs**: `docker run --rm test-{cli-agent} --version`
-3. **Verify runtimes are accessible**: 
+8. **CLI command works**: `docker run --rm test-{cli-agent} --version`
+9. **Verify runtimes are accessible**: 
    - `docker run --rm test-{cli-agent} python --version` (if Python project)
    - `docker run --rm test-{cli-agent} node --version` (if Node.js project)
    - `docker run --rm test-{cli-agent} go version` (if Go project)
-4. **Check user permissions**: `docker run --rm test-{cli-agent} whoami` (should be appuser)
-5. **Test global tools**: `docker run --rm test-{cli-agent} pytest --version` (if pytest was installed)
+10. **Check user permissions**: `docker run --rm test-{cli-agent} whoami` (should be appuser)
+11. **Test optional global tools**: `docker run --rm test-{cli-agent} pytest --version` (only if installed)
 
 ---
 
@@ -354,10 +367,10 @@ The generated Dockerfile should NOT include API keys, but should document requir
 
 ### Version Pinning Strategy
 
-- **CLI agent**: Use ARG with default `latest` (users can override for reproducibility)
+- **CLI agent**: Default to latest via `ARG ...=latest`; users can pin a specific version with `--build-arg` when reproducibility is needed
 - **Language runtimes**: Pin major version, float minor (e.g., `node:20` not `node:latest`)
 - **System packages**: Use distro defaults (they're tested together)
-- **Global tools**: Pin to specific versions when possible for reproducibility
+- **Global tools**: Pin to specific versions when installed
 
 ## Examples
 
@@ -396,8 +409,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install poetry
 
 # Node.js (required for Claude Code CLI)
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
-    apt-get install -y nodejs && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs npm && \
     rm -rf /var/lib/apt/lists/*
 
 # Claude Code CLI
@@ -410,7 +423,7 @@ RUN pip install pytest ruff mypy
 # Non-root user
 RUN useradd -r -m -u 1000 -s /bin/bash appuser
 WORKDIR /app
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app && chown appuser:appuser /app
 RUN mkdir -p /home/appuser/.claude && chown -R appuser:appuser /home/appuser/.claude
 USER appuser
 ENV PATH="/home/appuser/.local/bin:$PATH"
@@ -422,7 +435,7 @@ ENTRYPOINT ["claude"]
 
 **What changed vs the project's original Dockerfile:**
 - Removed `COPY . .` and `RUN poetry install` (agent handles deps at runtime)
-- Removed `EXPOSE 8000` and `CMD ["python", "manage.py", "runserver"]`
+- Replaced app default command with `ENTRYPOINT ["claude"]` for agent mode
 - Added Node.js (required by Claude Code)
 - Added Claude Code CLI
 - Added global dev tools: pytest, ruff, mypy
@@ -451,27 +464,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git make \
     && rm -rf /var/lib/apt/lists/*
 
-# Go runtime
-RUN curl -fsSL https://go.dev/dl/go1.23.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+# Go runtime (multi-arch aware)
+ARG GO_VERSION=1.23.7
+ARG TARGETARCH
+RUN case "$TARGETARCH" in \
+      amd64) GO_ARCH='amd64' ;; \
+      arm64) GO_ARCH='arm64' ;; \
+      *) echo "Unsupported arch: $TARGETARCH" && exit 1 ;; \
+    esac && \
+    curl -fsSLO "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" && \
+    curl -fsSLO "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz.sha256" && \
+    sha256sum -c "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz.sha256" && \
+    tar -C /usr/local -xzf "go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
 ENV PATH="/usr/local/go/bin:$PATH"
 
 # Node.js (required for Claude Code)
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
-    apt-get install -y nodejs && \
+RUN apt-get update && apt-get install -y --no-install-recommends nodejs npm && \
     rm -rf /var/lib/apt/lists/*
 
 # Claude Code CLI
 ARG CLAUDE_VERSION=latest
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}"
 
-# golangci-lint
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
-    sh -s -- -b /usr/local/bin
+# golangci-lint (optional; install only if detected, pinned version preferred)
+# RUN curl -fsSLO https://github.com/golangci/golangci-lint/releases/download/v1.61.0/golangci-lint-1.61.0-linux-${GO_ARCH}.tar.gz
 
 # Non-root user
 RUN useradd -r -m -u 1000 -s /bin/bash appuser
 WORKDIR /app
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app && chown appuser:appuser /app
 RUN mkdir -p /home/appuser/.claude && chown -R appuser:appuser /home/appuser/.claude
 RUN mkdir -p /home/appuser/go && chown -R appuser:appuser /home/appuser/go
 USER appuser
@@ -486,9 +507,9 @@ ENTRYPOINT ["claude"]
 ## Important Reminders
 
 - **Strategy A first**: Always check for a project Dockerfile before falling back to Strategy B. The project's own Dockerfile is the most reliable source of truth for what the project needs.
-- **Multi-stage builds**: Safe when using compatible official images (e.g., `FROM node:20-alpine AS base` then extending it). Avoid copying runtimes between incompatible images.
+- **Multi-stage builds**: Safe when using compatible official images. Avoid copying runtimes between incompatible images.
 - The goal is to give the AI coding agent everything it needs to **analyze, test, lint, and build** the target project
 - The agent itself will clone/mount the project and install project-level dependencies at runtime
 - Keep the image as lean as possible — only install what is actually detected in the project
-- When in doubt about a system library, include it — a missing library at runtime is worse than a slightly larger image
-- Always test your mental model: "Can the AI agent run the project's test suite with this Dockerfile?" If not, something is missing
+- Prefer deterministic installs over convenience scripts (`curl | bash`)
+- Set `ENTRYPOINT` to the agent CLI so the container always starts in agent mode
