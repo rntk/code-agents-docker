@@ -20,7 +20,7 @@ docker build -t claude-code .
 export ANTHROPIC_API_KEY="YOUR_API_KEY"
 
 # Run the container with volume mounts for working directory and config persistence
-docker run --rm -it -v $(pwd):/app -v $HOME/.claude:/home/node/.claude -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY claude-code
+docker run --rm -it -v $(pwd):/app -v $HOME/.claude:/home/node/.claude -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY claude-code --verbose --dangerously-skip-permissions
 ```
 
 ## Configuration
