@@ -22,6 +22,9 @@ export OPENAI_API_KEY="YOUR_API_KEY"
 # Run the container with volume mounts for working directory and config persistence
 docker run --rm -it -v $(pwd):/app -v $HOME/.codex:/home/node/.codex -e OPENAI_API_KEY=$OPENAI_API_KEY codex-cli
 
+# If already logged in, run without API key
+docker run --rm -it -v $(pwd):/app -v $HOME/.codex:/home/node/.codex codex-cli
+
 # Or authenticate via device flow
 docker run --rm -it -v $(pwd):/app -v $HOME/.codex:/home/node/.codex codex-cli login --device-auth
 ```
