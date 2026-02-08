@@ -7,9 +7,9 @@ You are a DevOps engineer specializing in containerized development environments
 Generate a project-specific Dockerfile that gives an AI coding CLI agent everything it needs to work on a given software project. The strategy is:
 
 1. **If the project has its own Dockerfile** — use it as the starting point and add the coding agent into it (Strategy A)
-2. **If the project has no Dockerfile** — use `ubuntu:24.04` as a universal base, install all required runtimes and tools natively, then add the coding agent (Strategy B)
+2. **If the project has no Dockerfile** — choose an appropriate base image, install all required runtimes and tools natively, then add the coding agent (Strategy B)
 
-Never copy runtimes between slim Docker images via multi-stage builds — it is fragile. Either reuse the project's proven Dockerfile or start from a full-featured base.
+Prefer reusing the project's proven Dockerfile when available. For projects without Dockerfiles, select a base image that matches the project's needs while keeping images lean and efficient.
 
 ## Inputs
 
@@ -45,132 +45,49 @@ Scan `{PROJECT_DIR}` to detect the project's technology stack. Check for the pre
 
 #### 2.1 Programming Languages
 
-| Indicator File/Pattern | Language |
-|------------------------|----------|
-| `*.py`, `pyproject.toml`, `setup.py`, `setup.cfg`, `Pipfile` | Python |
-| `*.js`, `*.mjs`, `*.cjs`, `package.json` | JavaScript (Node.js) |
-| `*.ts`, `*.tsx`, `tsconfig.json` | TypeScript |
-| `*.go`, `go.mod`, `go.sum` | Go |
-| `*.rs`, `Cargo.toml` | Rust |
-| `*.java`, `pom.xml`, `build.gradle`, `*.gradle.kts` | Java |
-| `*.kt`, `*.kts` | Kotlin |
-| `*.rb`, `Gemfile` | Ruby |
-| `*.php`, `composer.json` | PHP |
-| `*.cs`, `*.csproj`, `*.sln` | C# / .NET |
-| `*.c`, `*.h`, `Makefile`, `CMakeLists.txt` | C |
-| `*.cpp`, `*.cc`, `*.cxx`, `*.hpp` | C++ |
-| `*.swift`, `Package.swift` | Swift |
-| `*.ex`, `*.exs`, `mix.exs` | Elixir |
-| `*.scala`, `build.sbt` | Scala |
-| `*.lua` | Lua |
-| `*.zig`, `build.zig` | Zig |
-| `*.dart`, `pubspec.yaml` | Dart |
-| `*.r`, `*.R`, `DESCRIPTION` | R |
-| `*.jl`, `Project.toml` | Julia |
-| `*.sh`, `*.bash` | Shell/Bash |
+Scan for language files and config files:
+- **Python**: `*.py`, `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`
+- **JavaScript/Node.js**: `*.js`, `*.mjs`, `package.json`, `yarn.lock`, `pnpm-lock.yaml`
+- **TypeScript**: `*.ts`, `*.tsx`, `tsconfig.json`
+- **Go**: `*.go`, `go.mod`, `go.sum`
+- **Rust**: `*.rs`, `Cargo.toml`
+- **Java**: `*.java`, `pom.xml`, `build.gradle`
+- **C/C++**: `*.c`, `*.cpp`, `Makefile`, `CMakeLists.txt`
+- **And more**: Ruby (`*.rb`, `Gemfile`), PHP (`*.php`, `composer.json`), .NET (`*.cs`, `*.csproj`), etc.
 
-#### 2.2 Package Managers & Dependency Files
+#### 2.2 Package Managers & Build Tools
 
 | File | Tool | Action |
 |------|------|--------|
-| `package.json` | npm/yarn/pnpm | Install Node.js if not in base image |
-| `package-lock.json` | npm | Use npm for installs |
-| `yarn.lock` | yarn | Install yarn |
-| `pnpm-lock.yaml` | pnpm | Install pnpm |
-| `bun.lockb`, `bun.lock` | bun | Install bun runtime |
-| `requirements.txt` | pip | Install Python + pip |
-| `pyproject.toml` | pip/poetry/uv | Install Python; check `[build-system]` for tool |
-| `Pipfile` | pipenv | Install Python + pipenv |
-| `poetry.lock` | poetry | Install Python + poetry |
-| `uv.lock` | uv | Install Python + uv |
+| `package.json` | npm/yarn/pnpm/bun | Install Node.js |
+| `requirements.txt`, `pyproject.toml` | pip/poetry/uv | Install Python |
 | `go.mod` | go modules | Install Go |
-| `Cargo.toml` | cargo | Install Rust toolchain |
-| `Gemfile` | bundler | Install Ruby + bundler |
-| `composer.json` | composer | Install PHP + composer |
+| `Cargo.toml` | cargo | Install Rust |
+| `Gemfile` | bundler | Install Ruby |
+| `composer.json` | composer | Install PHP |
 | `pom.xml` | maven | Install Java + Maven |
-| `build.gradle`, `build.gradle.kts` | gradle | Install Java + Gradle |
-| `mix.exs` | mix | Install Elixir |
-| `pubspec.yaml` | dart/flutter pub | Install Dart/Flutter |
+| `build.gradle` | gradle | Install Java + Gradle |
+| `Makefile` | make | Install make |
+| `CMakeLists.txt` | cmake | Install cmake |
 
-#### 2.3 Testing Frameworks
+#### 2.3 Testing & Code Quality
 
-Look inside config files and dependency lists to detect testing tools:
+Look for testing frameworks and quality tools in dependencies/configs:
+- **Python**: pytest, unittest, ruff, mypy, flake8
+- **Node.js**: jest, mocha, vitest, eslint, prettier
+- **Go**: go test, golangci-lint
+- **Rust**: cargo test, clippy
+- **Java**: JUnit, TestNG
+- **And more**: RSpec (Ruby), PHPUnit (PHP), etc.
 
-| Indicator | Framework | Requires |
-|-----------|-----------|----------|
-| `pytest` in dependencies or `pytest.ini`, `conftest.py`, `pyproject.toml [tool.pytest]` | pytest | Python |
-| `unittest` imports in `*.py` | unittest | Python |
-| `jest` in `package.json` devDependencies, `jest.config.*` | Jest | Node.js |
-| `mocha` in `package.json`, `.mocharc.*` | Mocha | Node.js |
-| `vitest` in `package.json`, `vitest.config.*` | Vitest | Node.js |
-| `playwright` in dependencies, `playwright.config.*` | Playwright | Node.js + browsers |
-| `cypress` in dependencies, `cypress.config.*` | Cypress | Node.js + browsers |
-| `go test` patterns, `*_test.go` files | go test | Go |
-| `#[cfg(test)]` in `*.rs`, `tests/` dir with Cargo.toml | cargo test | Rust |
-| `rspec` in Gemfile, `.rspec`, `spec/` dir | RSpec | Ruby |
-| `phpunit` in composer.json, `phpunit.xml` | PHPUnit | PHP |
-| `JUnit`, `TestNG` in pom.xml/build.gradle | JUnit/TestNG | Java |
+#### 2.4 System Dependencies
 
-#### 2.4 Build Tools & Task Runners
-
-| File | Tool |
-|------|------|
-| `Makefile` | make |
-| `CMakeLists.txt` | cmake |
-| `Taskfile.yml` | task (go-task) |
-| `justfile` | just |
-| `Rakefile` | rake (Ruby) |
-| `Gruntfile.js` | grunt |
-| `gulpfile.js` | gulp |
-| `turbo.json` | turborepo |
-| `nx.json` | nx |
-| `webpack.config.*` | webpack |
-| `vite.config.*` | vite |
-| `rollup.config.*` | rollup |
-| `esbuild` in package.json | esbuild |
-| `tsup` in package.json | tsup |
-
-#### 2.5 Linters, Formatters & Code Quality
-
-| File | Tool |
-|------|------|
-| `.eslintrc*`, `eslint.config.*` | ESLint |
-| `.prettierrc*`, `prettier.config.*` | Prettier |
-| `ruff.toml`, `[tool.ruff]` in pyproject.toml | Ruff |
-| `.flake8`, `[flake8]` in setup.cfg | Flake8 |
-| `mypy.ini`, `[tool.mypy]` in pyproject.toml | mypy |
-| `.rubocop.yml` | RuboCop |
-| `clippy` in Cargo.toml | Clippy |
-| `golangci-lint` config, `.golangci.yml` | golangci-lint |
-| `biome.json` | Biome |
-
-#### 2.6 Database & Infrastructure
-
-| File/Pattern | Service |
-|--------------|---------|
-| Database URLs, `sqlalchemy`, `diesel`, `prisma`, `drizzle`, `knex`, `typeorm`, `sequelize` in dependencies | Database client libs |
-| `docker-compose.yml` referencing services | External service dependencies |
-| `.env.example` listing required env vars | Environment configuration hints |
-| `redis` in dependencies | Redis client |
-| `Procfile` | Process management (Heroku-style) |
-| `serverless.yml`, `sam.template.yaml` | Serverless frameworks |
-
-#### 2.7 System-Level Tool Requirements
-
-| Indicator | System Package |
-|-----------|---------------|
-| `git` usage, `.gitmodules` | git |
-| `curl`/`wget` in scripts | curl / wget |
-| `ssh` keys or remote access | openssh-client |
-| Image processing libraries (`Pillow`, `sharp`) | libjpeg, libpng, etc. |
-| `bcrypt`, `argon2` in dependencies | build-essential / gcc |
-| `lxml` in Python deps | libxml2-dev, libxslt-dev |
-| `psycopg2` (non-binary) in Python deps | libpq-dev |
-| `mysqlclient` in Python deps | default-libmysqlclient-dev |
-| FFmpeg usage | ffmpeg |
-| `cairo`, `pango` in deps | libcairo2-dev, libpango1.0-dev |
-| Native Node addons (`node-gyp`) | python3, make, g++ |
-| `protobuf` usage | protobuf-compiler |
+Common system packages needed:
+- **Database clients**: libpq-dev (PostgreSQL), default-libmysqlclient-dev (MySQL)
+- **Image processing**: libjpeg, libpng, ffmpeg
+- **XML/HTML**: libxml2-dev, libxslt-dev
+- **Cryptography**: build-essential, gcc
+- **Native addons**: python3, make, g++
 
 ---
 
@@ -196,14 +113,19 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 - Remove any `EXPOSE` directives (not needed for a CLI agent)
 - Keep all `RUN` lines that install system packages, runtimes, and tools
 
-#### Strategy B: No Project Dockerfile — Use `ubuntu:24.04` (Universal Fallback)
+#### Strategy B: No Project Dockerfile — Choose Appropriate Base
 
 **When to use**: The target project has no Dockerfile, or its Dockerfile is unsuitable (e.g., scratch image, distroless, heavily application-specific).
 
-**Why**: `ubuntu:24.04` provides a full, stable base with `apt-get` access to virtually every package. No brittle multi-stage runtime copying needed — just install what you need natively. This is more reliable than trying to graft runtimes between slim images.
+**Base image decision tree**:
+1. **Single runtime, simple deps, no compiled extensions?** → Consider Alpine-based images (e.g., `node:20-alpine`, `python:3.13-alpine`) for minimal size
+2. **Multiple heavy runtimes or complex system deps?** → Use `ubuntu:24.04` for broad compatibility
+3. **Official slim images available?** → Prefer them over Ubuntu when they meet requirements (e.g., `node:20-slim`, `python:3.13-slim`)
+
+**Why**: Alpine images are smaller but may require additional system packages for compiled extensions. Ubuntu provides the broadest compatibility but at higher image size. Official slim images offer a good middle ground.
 
 **How**:
-1. Start from `ubuntu:24.04`
+1. Start from the chosen base image
 2. Install all required language runtimes via `apt-get` or official install scripts
 3. Install the AI coding CLI agent
 4. Install global development tools
@@ -236,6 +158,14 @@ Before generating anything, decide which strategy to use. Evaluate them **in ord
 
 ---
 
+### Step 3.5: Consider Architecture & Platform
+
+**Multi-platform builds**: Support both AMD64 and ARM64 architectures when possible. Use `docker buildx build --platform linux/amd64,linux/arm64` for builds. Note that some runtime installers (like Go downloads) may need platform-specific URLs.
+
+**Performance considerations**: On ARM64 systems (M1/M2 Macs), prefer native ARM64 images over Rosetta translation. Official slim images often have better ARM64 support than Ubuntu.
+
+---
+
 ### Step 4: Generate the Project-Specific Dockerfile
 
 Using the information from Steps 1–3, create a Dockerfile. Follow these rules strictly:
@@ -249,16 +179,24 @@ Using the information from Steps 1–3, create a Dockerfile. Follow these rules 
 3. **Do NOT install project dependencies** (no `npm install`, `pip install -r requirements.txt`, etc. for the project itself). The Dockerfile sets up the environment — the AI agent will handle project dependency installation at runtime.
 
 4. **DO install global tools** that the agent needs for analysis, testing, and development:
-   - Testing runners (pytest, jest globally if needed)
-   - Linters/formatters the project uses
-   - Build tools (make, cmake, etc.)
-   - Package managers (yarn, pnpm, poetry, etc.)
+   - **Testing runners**: Tools like `pytest`, `jest`, `mocha` that execute tests (install globally)
+   - **Linters/formatters**: `eslint`, `prettier`, `ruff`, `mypy` (install globally)
+   - **Build tools**: `make`, `cmake`, `webpack`, `vite` (install globally)
+   - **Package managers**: `yarn`, `pnpm`, `poetry` (install globally)
+   - **Do NOT install**: Project dependencies from `requirements.txt`, `package.json` dependencies, or `go.mod` — let the agent handle these at runtime
 
 5. **Set the ENTRYPOINT/CMD** to the CLI agent command (e.g., `claude`, `codex`, `gemini`).
 
 6. **Always create a non-root user** if one doesn't exist. Use `appuser` with UID 1000.
 
 7. **Do NOT COPY project source code**. The project directory is volume-mounted at `/app` at runtime.
+
+8. **Layer ordering for cache efficiency**: Order layers from least to most frequently changing:
+   - System packages (rarely change)
+   - Language runtimes (change with version updates)
+   - CLI agent (changes with updates)
+   - Global tools (may change with project needs)
+   - User setup and entrypoint (rarely change)
 
 #### 4.2 Template for Strategy A (Project Dockerfile as Base)
 
@@ -280,7 +218,7 @@ FROM {PROJECT_BASE_IMAGE}
 # ... (system packages and runtime setup from project Dockerfile) ...
 
 # --- Install the AI coding CLI ---
-# For Node.js-based agents (install Node.js first if not already present):
+# Version pinning: Use ARG with default 'latest' for flexibility, but pin major versions for runtimes
 ARG {CLI}_VERSION=latest
 RUN npm install -g "{CLI_NPM_PACKAGE}@${{{CLI}_VERSION}}"
 
@@ -365,6 +303,7 @@ ENTRYPOINT ["{CLI_COMMAND}"]
 
 - Save the generated Dockerfile as `Dockerfile.{CLI_AGENT}` in the `{CLI_AGENT}/` directory
 - Also create/update a single `README.agents_docker.md` with just a couple instructions of how to build and run
+- If generating a `.dockerignore`, exclude: `node_modules/`, `venv/`, `__pycache__/`, `.git/`, build artifacts, test outputs, IDE configs
 
 ---
 
@@ -382,6 +321,43 @@ After generating the Dockerfile, verify:
 8. **Runtime test**: Mentally verify — "Can the AI agent run `pytest`, `npm test`, `go test`, etc. inside this container?"
 
 ---
+
+### Step 6: Verify the Generated Dockerfile
+
+After generating the Dockerfile, test it to ensure it works:
+
+1. **Build the image**: `docker build -t test-{cli-agent} -f Dockerfile.{cli-agent} .`
+2. **Verify CLI agent runs**: `docker run --rm test-{cli-agent} --version`
+3. **Verify runtimes are accessible**: 
+   - `docker run --rm test-{cli-agent} python --version` (if Python project)
+   - `docker run --rm test-{cli-agent} node --version` (if Node.js project)
+   - `docker run --rm test-{cli-agent} go version` (if Go project)
+4. **Check user permissions**: `docker run --rm test-{cli-agent} whoami` (should be appuser)
+5. **Test global tools**: `docker run --rm test-{cli-agent} pytest --version` (if pytest was installed)
+
+---
+
+### CLI Agent Configuration
+
+The generated Dockerfile should NOT include API keys, but should document required environment variables for runtime:
+
+```dockerfile
+# Example environment variables (set at runtime):
+# - ANTHROPIC_API_KEY (for claude-code)
+# - OPENAI_API_KEY (for codex-cli)
+# - GITHUB_TOKEN (for copilot-cli)
+# - GOOGLE_API_KEY (for gemini-cli)
+# Run with: docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY ...
+```
+
+---
+
+### Version Pinning Strategy
+
+- **CLI agent**: Use ARG with default `latest` (users can override for reproducibility)
+- **Language runtimes**: Pin major version, float minor (e.g., `node:20` not `node:latest`)
+- **System packages**: Use distro defaults (they're tested together)
+- **Global tools**: Pin to specific versions when possible for reproducibility
 
 ## Examples
 
@@ -510,7 +486,7 @@ ENTRYPOINT ["claude"]
 ## Important Reminders
 
 - **Strategy A first**: Always check for a project Dockerfile before falling back to Strategy B. The project's own Dockerfile is the most reliable source of truth for what the project needs.
-- **Do not copy runtimes between images**: Never use multi-stage builds to copy a runtime (Python, Node, Go) from one slim image into another. Use `ubuntu:24.04` and install natively instead — it is simpler and more reliable.
+- **Multi-stage builds**: Safe when using compatible official images (e.g., `FROM node:20-alpine AS base` then extending it). Avoid copying runtimes between incompatible images.
 - The goal is to give the AI coding agent everything it needs to **analyze, test, lint, and build** the target project
 - The agent itself will clone/mount the project and install project-level dependencies at runtime
 - Keep the image as lean as possible — only install what is actually detected in the project
