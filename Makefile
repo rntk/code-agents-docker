@@ -6,7 +6,7 @@ build-all:
 		if [ -f "$$dir/Dockerfile" ]; then \
 			image_name=$$(basename $$dir); \
 			echo "Building $$image_name..."; \
-			docker build -t $$image_name $$dir; \
+			docker build --no-cache -t $$image_name $$dir; \
 		fi; \
 	done
 
