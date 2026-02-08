@@ -137,7 +137,7 @@ Before generating, examine existing project-specific Dockerfiles in `{DOCKERFILE
 
 **Output:**
 - Save as `Dockerfile.{CLI_AGENT}` in the current project directory
-- Create `README.agents_docker.md` with brief build/run instructions (keep it concise, not wordy)
+- Create or update `README.agents_docker.md` with brief build/run instructions (keep it concise, not wordy). If the file already exists, append new information rather than rewriting completely, as it may contain information for other agents.
 
 **Must Include:**
 - Strategy choice (A/B) and rationale
