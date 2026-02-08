@@ -363,13 +363,8 @@ ENTRYPOINT ["{CLI_COMMAND}"]
 
 #### 4.4 Naming & Output
 
-- Save the generated Dockerfile as `Dockerfile.{project_name}` in the `{CLI_AGENT}/` directory
-- Also generate a companion `README.{project_name}.md` with:
-  - Which strategy was used (A or B) and why
-  - Detected technology stack summary
-  - Build command
-  - Run command with all necessary volume mounts and env vars
-  - List of pre-installed tools and why each was included
+- Save the generated Dockerfile as `Dockerfile.{CLI_AGENT}` in the `{CLI_AGENT}/` directory
+- Also create/update a single `README.agents_docker.md` with just a couple instructions of how to build and run
 
 ---
 
