@@ -1,12 +1,11 @@
 # GitHub Copilot CLI (Dockerized)
 
-This directory contains a Docker setup for running [GitHub Copilot CLI](https://github.com/cli/cli).
+This directory contains a Docker setup for running [GitHub Copilot CLI](https://github.com/features/copilot/cli).
 
 ## Prerequisites
 
 - Docker installed on your system
 - GitHub account with Copilot access
-- Authenticate via `gh auth login` (run outside container first, or mount config)
 
 ## Build
 
@@ -18,7 +17,7 @@ docker build -t copilot-cli .
 
 ```bash
 # Run the container with volume mounts for working directory and config persistence
-docker run --rm -it -v $(pwd):/app -v $HOME/.copilot:/home/node/.copilot copilot-cli
+docker run --rm -it -v $(pwd):/app -v $HOME/.copilot:/home/node/.copilot copilot-cli --allow-all
 ```
 
 ## Configuration
@@ -30,6 +29,5 @@ docker run --rm -it -v $(pwd):/app -v $HOME/.copilot:/home/node/.copilot copilot
 
 ## Troubleshooting
 
-- **Authentication issues**: Run `gh auth login` on the host and ensure config is mounted.
 - **Permission errors**: Check that the host's `~/.copilot` directory is writable.
 - **Build failures**: Verify Docker access and network for npm installs.
