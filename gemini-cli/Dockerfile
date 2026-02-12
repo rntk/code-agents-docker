@@ -9,4 +9,4 @@ WORKDIR /app
 # Switch to non-root user for security
 USER node
 
-CMD ["gemini"]
+ENTRYPOINT ["gemini"]

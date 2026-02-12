@@ -20,9 +20,9 @@ docker build -t gemini-cli .
 export GEMINI_API_KEY="YOUR_API_KEY"
 
 # Run the container with volume mount for working directory
-docker run --rm -it -v $(pwd):/app -e GEMINI_API_KEY=$GEMINI_API_KEY gemini-cli
+docker run --rm -it -v $(pwd):/app -e GEMINI_API_KEY=$GEMINI_API_KEY gemini-cli --approval-mode=yolo
 
-docker run --rm -it -v $(pwd):/app -v $HOME/.gemini:/home/node/.gemini gemini-cli
+docker run --rm -it -v $(pwd):/app -v $HOME/.gemini:/home/node/.gemini gemini-cli --approval-mode=yolo
 ```
 
 ## Configuration
