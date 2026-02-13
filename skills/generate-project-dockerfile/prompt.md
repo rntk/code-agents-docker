@@ -20,14 +20,14 @@ Name of the AI coding CLI (`claude-code`, `codex-cli`, `copilot-cli`, `devstral-
 
 ### Step 1: Read the Reference Dockerfile
 
-Read `{DOCKERFILES_REPO}/{CLI_AGENT}/Dockerfile` to extract:
+Read `{DOCKERFILES_REPO}/agents/{CLI_AGENT}/Dockerfile` to extract:
 - CLI installation method (e.g., `npm install -g @anthropic-ai/claude-code`)
 - Required runtime (Node.js for most, Python for devstral/kimi)
 - Entrypoint command (e.g., `claude`, `codex`, `gemini`)
 - Config directories (e.g., `/home/node/.claude`)
 - Build ARGs for version pinning
 
-Also read `{DOCKERFILES_REPO}/{CLI_AGENT}/README.md` to extract:
+Also read `{DOCKERFILES_REPO}/agents/{CLI_AGENT}/README.md` to extract:
 - Run examples and required parameters (e.g., mounting config directories, environment variables, command-line flags like `-a never` for codex-cli)
 - Any agent-specific runtime instructions or configurations
 

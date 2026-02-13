@@ -42,5 +42,5 @@ claude "Follow the skill instructions in /path/to/skills/generate-project-docker
 ```
 
 The agent will analyze the project, detect requirements, and generate:
-- `{CLI_AGENT}/Dockerfile.{project_name}` — the project-specific Dockerfile
-- `{CLI_AGENT}/README.{project_name}.md` — build/run instructions and detected stack summary
+- `Dockerfile.{CLI_AGENT}` — the project-specific Dockerfile
+- `README.{CLI_AGENT}.md` — build/run instructions and detected stack summary

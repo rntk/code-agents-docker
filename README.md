@@ -6,29 +6,63 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 
 | Directory | CLI | Provider | Base Image | Non-Root |
 |-----------|-----|----------|------------|-----------|
-| [claude-code](./claude-code/) | Claude Code | Anthropic | Node.js 24 | Yes |
-| [codex-cli](./codex-cli/) | Codex CLI | OpenAI | Node.js 24 Alpine | Yes |
-| [copilot-cli](./copilot-cli/) | Copilot CLI | GitHub | Node.js 24 | Yes |
-| [devstral-cli](./devstral-cli/) | Vibe CLI | Mistral | Python 3.13 | Yes |
-| [gemini-cli](./gemini-cli/) | Gemini CLI | Google | Node.js 24 | Yes |
-| [kimi-cli](./kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 | Yes |
+| [claude-code](./agents/claude-code/) | Claude Code | Anthropic | Node.js 24 | Yes |
+| [codex-cli](./agents/codex-cli/) | Codex CLI | OpenAI | Node.js 24 Alpine | Yes |
+| [copilot-cli](./agents/copilot-cli/) | Copilot CLI | GitHub | Node.js 24 | Yes |
+| [devstral-cli](./agents/devstral-cli/) | Vibe CLI | Mistral | Python 3.13 | Yes |
+| [gemini-cli](./agents/gemini-cli/) | Gemini CLI | Google | Node.js 24 | Yes |
+| [kimi-cli](./agents/kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 | Yes |
+
+## Repository Structure
+
+- `agents/`: Individual Docker environments for each AI coding CLI.
+- `skills/`: Reusable prompts and procedures (like the Dockerfile generator).
+- `generate_prompt.py`: Helper script to use the `generate-project-dockerfile` skill.
+- `Makefile`: Standardized commands for building and running agents.
 
 ## Quick Start
 
-Each subdirectory contains its own Dockerfile and README with specific build and run instructions. Generally:
+You can build and run agents using the provided Makefile from the root of the repository:
 
 ```bash
-cd <cli-directory>
-docker build -t <image-name> .
+# Build all agents
+make build-all
+
+# Run a specific agent (e.g., claude-code)
+make run CLI=claude-code
+```
+
+Alternatively, you can work directly with the agent directories:
+
+```bash
+# Build a specific image
+docker build -t <image-name> agents/<cli-directory>
+
+# Run it, mounting your current project to /app
 docker run --rm -it -v $(pwd):/app <image-name>
 ```
 
-Alternatively, use the provided Makefile to build all images at once:
+## Skills & Project-Specific Dockerfiles
 
-```bash
-make build-all
-make run CLI=<cli-name>
-```
+In addition to the base agent images, this repository includes **Skills** — specialized procedures for AI agents.
+
+### Project-Specific Dockerfile Generator
+
+If you want to create a Dockerfile tailored for a specific software project that includes one of these AI agents, you can use the `generate_prompt.py` script. 
+
+This tool uses the `generate-project-dockerfile` skill to create a comprehensive prompt that you can paste into an AI agent. It will then build a `Dockerfile` specifically for your project's technology stack (Python, Node.js, Go, etc.), while pre-installing all dependencies.
+
+#### Usage
+
+1. Run the script from the root:
+   ```bash
+   python3 generate_prompt.py
+   ```
+2. Select the agent you want to integrate from the list.
+3. Copy the generated prompt.
+4. Run the prompt in your target project's context using an AI agent.
+
+See the [skills/README.md](./skills/README.md) for more information on available skills.
 
 ## Common Features
 
@@ -43,6 +77,7 @@ make run CLI=<cli-name>
 ## Requirements
 
 - Docker installed on your system
+- Python 3 (for the prompt generator)
 - API keys for the respective services (where required)
 
 ## License

@@ -2,7 +2,7 @@
 
 # Build all Docker images
 build-all:
-	@for dir in */; do \
+	@for dir in agents/*/; do \
 		if [ -f "$$dir/Dockerfile" ]; then \
 			image_name=$$(basename $$dir); \
 			echo "Building $$image_name..."; \
@@ -16,8 +16,8 @@ run:
 		echo "Usage: make run CLI=<cli-name>"; \
 		exit 1; \
 	fi; \
-	if [ ! -d "$(CLI)" ]; then \
-		echo "CLI $(CLI) not found"; \
+	if [ ! -d "agents/$(CLI)" ]; then \
+		echo "CLI $(CLI) not found in agents/"; \
 		exit 1; \
 	fi; \
 	docker run --rm -it -v $$(pwd):/app $(CLI)
