@@ -12,6 +12,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 | [devstral-cli](./agents/devstral-cli/) | Vibe CLI | Mistral | Python 3.13 | Yes |
 | [gemini-cli](./agents/gemini-cli/) | Gemini CLI | Google | Node.js 24 | Yes |
 | [kimi-cli](./agents/kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 | Yes |
+| [kiro-cli](./agents/kiro-cli/) | Kiro CLI | AWS | Ubuntu 24.04 | Yes |
 
 ## Repository Structure
 
