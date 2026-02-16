@@ -1,0 +1,22 @@
+# OCI labels for metadata
+ARG VCS_REF=""
+ARG BUILD_DATE=""
+ARG VERSION=""
+
+FROM node:24-slim
+
+# Configure Qwen Code version via build-arg
+ARG QWEN_VERSION=latest
+RUN npm install -g "@qwen-code/qwen-code@${QWEN_VERSION}"
+
+WORKDIR /app
+
+# Change ownership of app directory to node user
+RUN chown -R node:node /app
+RUN mkdir -p /home/node/.qwen && \
+    chown -R node:node /home/node/.qwen
+
+# Switch to node user
+USER node
+
+ENTRYPOINT ["qwen"]
