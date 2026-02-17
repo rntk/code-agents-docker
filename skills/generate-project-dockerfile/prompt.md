@@ -198,3 +198,41 @@ Document required environment variables (set at runtime, not in Dockerfile):
 - **Deterministic installs**: Prefer verified binaries with checksums over `curl | bash`
 - **Lean but ready**: Keep image lean, but prioritize readiness over size
 - **Set entrypoint**: Container always starts in agent mode
+
+
+## Important Instructions on Node.js Installation
+
+**Note:** When installing Node.js in Docker containers, prefer using the official Node.js Docker images for Node.js-based projects. If you need to add Node.js as an additional runtime to a container based on a different base image (e.g., Python, Ubuntu), use version managers like nvm or fnm to install the latest LTS version, as distro packages (e.g., Ubuntu 24's Node.js 18) may be outdated. Follow these verified instructions for version managers:
+
+### Using nvm:
+```bash
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+# Instead of restarting the shell:
+\. "$HOME/.nvm/nvm.sh"
+
+# Download and install Node.js:
+nvm install 24
+
+# Verify the Node.js version:
+node -v  # Should print "v24.13.1"
+
+# Verify npm version:
+npm -v   # Should print "11.8.0"
+```
+
+### Using fnm:
+```bash
+# Download and install fnm:
+curl -o- https://fnm.vercel.app/install | bash
+
+# Download and install Node.js:
+fnm install 24
+
+# Verify the Node.js version:
+node -v  # Should print "v24.13.1"
+
+# Verify npm version:
+npm -v   # Should print "11.8.0"
+```
