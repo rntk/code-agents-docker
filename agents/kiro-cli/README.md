@@ -26,7 +26,7 @@ docker run --rm -it \
 
 ```bash
 # Run the container with volume mount for working directory
-docker run --rm -it -v $(pwd):/app kiro-cli --trust-all-tools
+docker run --rm -it -v $(pwd):/app kiro-cli chat --trust-all-tools
 ```
 
 To persist authentication and data:
@@ -36,7 +36,7 @@ docker run --rm -it \
   -v $(pwd):/app \
   -v $HOME/.kiro:/home/ubuntu/.kiro \
   -v $HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli \
-  kiro-cli --trust-all-tools
+  kiro-cli chat --trust-all-tools
 ```
 
 ## Configuration
