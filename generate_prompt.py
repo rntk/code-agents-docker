@@ -2,6 +2,19 @@
 import os
 import sys
 
+# Per-agent metadata used by the prompt template.
+# Keep this explicit so command/config assumptions don't drift for irregular names.
+AGENT_METADATA = {
+    "claude-code": {"entrypoint": "claude", "config_dir": "claude"},
+    "codex-cli": {"entrypoint": "codex", "config_dir": "codex"},
+    "copilot-cli": {"entrypoint": "copilot", "config_dir": "copilot"},
+    "devstral-cli": {"entrypoint": "vibe", "config_dir": "vibe"},
+    "gemini-cli": {"entrypoint": "gemini", "config_dir": "gemini"},
+    "kimi-cli": {"entrypoint": "kimi", "config_dir": "kimi"},
+    "kiro-cli": {"entrypoint": "kiro-cli", "config_dir": "kiro"},
+    "qwen-code": {"entrypoint": "qwen", "config_dir": "qwen"},
+}
+
 # The base prompt template from skills/generate-project-dockerfile/prompt.md
 # Updated to refer to embedded content and improved for use with agents.
 PROMPT_TEMPLATE = """# Skill: Generate Project-Specific Dockerfile and Bash Script
@@ -314,6 +327,12 @@ def main():
         print(f"Error: No agents found in '{agents_dir}'.")
         sys.exit(1)
 
+    unsupported_agents = [agent for agent in agents if agent not in AGENT_METADATA]
+    if unsupported_agents:
+        print("Error: Missing metadata for agent(s): " + ", ".join(sorted(unsupported_agents)))
+        print("Please add entrypoint/config_dir metadata in AGENT_METADATA.")
+        sys.exit(1)
+
     print("Available agents:")
     for i, agent in enumerate(agents):
         print(f"{i}: {agent}")
@@ -343,20 +362,15 @@ def main():
         with open(readme_path, "r") as f:
             readme_content = f.read()
 
-    # Extract a simple command name for the entrypoint placeholder
-    # e.g., 'claude-code' -> 'claude', 'gemini-cli' -> 'gemini'
-    agent_name_lower = selected_agent.split('-')[0]
-
-    # Extract config directory name from agent name
-    # e.g., 'claude-code' -> 'claude', 'qwen-code' -> 'qwen', 'gemini-cli' -> 'gemini'
-    # The config dir is typically the first part of the agent name
-    agent_config_dir = agent_name_lower
+    agent_metadata = AGENT_METADATA[selected_agent]
+    agent_entrypoint = agent_metadata["entrypoint"]
+    agent_config_dir = agent_metadata["config_dir"]
 
     final_prompt = PROMPT_TEMPLATE.format(
         CLI_AGENT=selected_agent,
         DOCKERFILE_CONTENT=dockerfile_content,
         README_CONTENT=readme_content,
-        CLI_AGENT_NAME_LOWER=agent_name_lower,
+        CLI_AGENT_NAME_LOWER=agent_entrypoint,
         CLI_AGENT_CONFIG_DIR=agent_config_dir
     )
 
