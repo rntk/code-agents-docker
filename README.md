@@ -24,7 +24,22 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 
 ## Quick Start
 
-You can build and run agents using the provided Makefile from the root of the repository:
+### Using run-agent.sh (Recommended)
+
+The easiest way to run an AI agent is with the interactive `run-agent.sh` script:
+
+```bash
+./run-agent.sh
+```
+
+This script will:
+1. List all available AI agents
+2. Prompt you to select one (1-8)
+3. Run the selected agent with proper volume mounts and configuration
+
+### Using Makefile
+
+You can also build and run agents using the provided Makefile from the root of the repository:
 
 ```bash
 # Build all agents
@@ -33,6 +48,8 @@ make build-all
 # Run a specific agent (e.g., claude-code)
 make run CLI=claude-code
 ```
+
+### Using Docker Directly
 
 Alternatively, you can work directly with the agent directories:
 

@@ -4,19 +4,21 @@ import sys
 
 # The base prompt template from skills/generate-project-dockerfile/prompt.md
 # Updated to refer to embedded content and improved for use with agents.
-PROMPT_TEMPLATE = """# Skill: Generate Project-Specific Dockerfile
+PROMPT_TEMPLATE = """# Skill: Generate Project-Specific Dockerfile and Bash Script
 
 You are a DevOps engineer specializing in containerized development environments for AI coding agents.
 
 ## Objective
 
-Generate a project-specific Dockerfile that gives an AI coding CLI agent everything it needs to work on a given software project.
+Generate a project-specific Dockerfile and a companion bash script that gives an AI coding CLI agent everything it needs to work on a given software project.
 
 **Strategy:**
 1. **If the project has its own Dockerfile** — extend it by adding the coding agent (Strategy A - preferred)
 2. **If the project has no Dockerfile** — choose an appropriate base image, install runtimes and tools, then add the coding agent (Strategy B)
 
 **The generated Dockerfile must pre-install all project dependencies** so the environment is ready for testing and execution immediately.
+
+**The generated bash script must provide convenient `build` and `run` commands** for the agent-specific Docker container.
 
 ## Inputs
 
@@ -159,7 +161,117 @@ RUN case "$TARGETARCH" in \\
 
 ---
 
-### Step 5: Validate the Dockerfile
+### Step 5: Generate the Agent-Specific Bash Script
+
+Generate a bash script named `{CLI_AGENT}.sh` that provides convenient `build` and `run` commands.
+
+**Script Requirements:**
+
+1. **Location**: Save as `{CLI_AGENT}.sh` in the current project directory (same directory as `Dockerfile.{CLI_AGENT}`)
+
+2. **Commands**: Support two subcommands:
+   - `build` - Rebuild the Docker image with `--no-cache`
+   - `run` - Run the agent's Docker container in the current directory
+
+3. **Build command** (`./{CLI_AGENT}.sh build`):
+   - Build the Docker image using `Dockerfile.{CLI_AGENT}`
+   - Use `--no-cache` flag to ensure fresh build
+   - Tag the image with `{CLI_AGENT}:latest`
+   - Example: `docker build --no-cache -f Dockerfile.{CLI_AGENT} -t {CLI_AGENT}:latest .`
+
+4. **Run command** (`./{CLI_AGENT}.sh run [additional args]`):
+   - Run the container interactively with proper volume mounts
+   - Mount current directory to `/app`: `-v $(pwd):/app`
+   - Mount agent config directory (extracted from Reference Dockerfile/README)
+   - Pass required environment variables (from Reference README)
+   - Use `--rm` to auto-remove container on exit
+   - Pass through any additional arguments to the agent
+   - Example: `docker run --rm -it -v $(pwd):/app -v $HOME/.{CLI_AGENT_CONFIG_DIR}:/home/node/.{CLI_AGENT_CONFIG_DIR} [ENV_VARS] {CLI_AGENT}:latest "$@"`
+
+5. **Config directory extraction**:
+   - From Reference Dockerfile/README, identify the config directory (e.g., `/home/node/.claude` for claude-code)
+   - Extract the host-side config path (e.g., `$HOME/.claude`)
+   - Include all required volume mounts for config persistence
+
+6. **Environment variables**:
+   - Include any required environment variables from the Reference README
+   - Example: `-e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY` for claude-code
+
+7. **Script structure**:
+   - Use `#!/usr/bin/env bash` shebang
+   - Include usage help function
+   - Handle errors gracefully
+   - Support passing additional arguments to the run command
+
+**Example Script Structure:**
+```bash
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
+IMAGE_NAME="{CLI_AGENT}:latest"
+DOCKERFILE="Dockerfile.{CLI_AGENT}"
+
+# Config directories (extracted from agent's Reference Dockerfile/README)
+HOST_CONFIG_DIR="$HOME/.{CLI_AGENT_CONFIG_DIR}"
+CONTAINER_CONFIG_DIR="/home/node/.{CLI_AGENT_CONFIG_DIR}"
+
+usage() {{
+    echo "Usage: ${{0}} <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  build    Build the Docker image (no-cache)"
+    echo "  run      Run the agent container"
+    echo ""
+    echo "Examples:"
+    echo "  ${{0}} build"
+    echo "  ${{0}} run"
+    echo "  ${{0}} run --verbose --yolo"
+    exit 1
+}}
+
+build() {{
+    echo "Building ${{IMAGE_NAME}}..."
+    docker build --no-cache -f "${{DOCKERFILE}}" -t "${{IMAGE_NAME}}" .
+    echo "Build complete."
+}}
+
+run() {{
+    echo "Running ${{IMAGE_NAME}}..."
+    docker run --rm -it \\
+        -v "$(pwd):/app" \\
+        -v "${{HOST_CONFIG_DIR}}:${{CONTAINER_CONFIG_DIR}}" \\
+        [ADDITIONAL_ENV_VARS] \\
+        "${{IMAGE_NAME}}" "$@"
+}}
+
+# Main
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+case "$1" in
+    build)
+        build
+        ;;
+    run)
+        shift
+        run "$@"
+        ;;
+    *)
+        usage
+        ;;
+esac
+```
+
+**Output:**
+- Save as `{CLI_AGENT}.sh` in the current project directory
+- Make executable: `chmod +x {CLI_AGENT}.sh`
+- Add header comments with usage instructions
+
+---
+
+### Step 6: Validate the Dockerfile
 
 Run this checklist:
 1. Build test succeeds
@@ -235,11 +347,17 @@ def main():
     # e.g., 'claude-code' -> 'claude', 'gemini-cli' -> 'gemini'
     agent_name_lower = selected_agent.split('-')[0]
 
+    # Extract config directory name from agent name
+    # e.g., 'claude-code' -> 'claude', 'qwen-code' -> 'qwen', 'gemini-cli' -> 'gemini'
+    # The config dir is typically the first part of the agent name
+    agent_config_dir = agent_name_lower
+
     final_prompt = PROMPT_TEMPLATE.format(
         CLI_AGENT=selected_agent,
         DOCKERFILE_CONTENT=dockerfile_content,
         README_CONTENT=readme_content,
-        CLI_AGENT_NAME_LOWER=agent_name_lower
+        CLI_AGENT_NAME_LOWER=agent_name_lower,
+        CLI_AGENT_CONFIG_DIR=agent_config_dir
     )
 
     print("\n--- GENERATED PROMPT ---\n")
