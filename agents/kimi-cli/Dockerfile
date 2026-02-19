@@ -33,4 +33,4 @@ RUN curl -L code.kimi.com/install.sh | bash || \
 RUN which uv || echo "uv installed at /home/appuser/.local/bin/uv"
 
 # Set the entrypoint to run kimi
-CMD ["kimi"]
+ENTRYPOINT [ "kimi" ]
