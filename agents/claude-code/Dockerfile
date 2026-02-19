@@ -5,6 +5,14 @@ ARG VERSION=""
 
 FROM node:24-slim
 
+# Install system utilities
+RUN apt-get update && apt-get install -y \
+    git \
+    ripgrep \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
 # Configure Claude Code version via build-arg
 ARG CLAUDE_VERSION=latest
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}"

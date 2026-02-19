@@ -1,5 +1,13 @@
 FROM node:24-slim
 
+# Install system utilities
+RUN apt-get update && apt-get install -y \
+    git \
+    ripgrep \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
 # Configure Copilot CLI version via build-arg
 ARG COPILOT_VERSION=latest
 RUN npm install -g "@github/copilot@${COPILOT_VERSION}"

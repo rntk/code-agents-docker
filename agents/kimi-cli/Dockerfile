@@ -8,9 +8,9 @@ ARG GROUP_ID=1000
 RUN groupadd -r -g ${GROUP_ID} appuser && \
     useradd -r -m -u ${USER_ID} -g appuser -s /bin/bash appuser
 
-# Install curl and bash
+# Install system utilities
 RUN apt-get update && \
-    apt-get install -y curl bash && \
+    apt-get install -y curl bash git ripgrep iputils-ping && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

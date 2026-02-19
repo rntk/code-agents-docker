@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM node:24-alpine
+FROM node:24-slim
 
 # OCI labels and build metadata
 ARG VCS_REF=""
@@ -11,15 +11,13 @@ ENV NODE_ENV=production \
     NPM_CONFIG_AUDIT=false \
     NPM_CONFIG_UPDATE_NOTIFIER=false
 
-# Minimal runtime packages and basic shell utilities
-RUN apk add --no-cache \
-    ca-certificates \
-    coreutils \
-    bash \
-    findutils \
-    grep \
-    sed \
-    gawk
+# Install system utilities
+RUN apt-get update && apt-get install -y \
+    git \
+    ripgrep \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configure Codex CLI version via build-arg
 ARG CODEX_VERSION=latest

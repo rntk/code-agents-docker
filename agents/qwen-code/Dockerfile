@@ -5,6 +5,14 @@ ARG VERSION=""
 
 FROM node:24-slim
 
+# Install system utilities
+RUN apt-get update && apt-get install -y \
+    git \
+    ripgrep \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
 # Configure Qwen Code version via build-arg
 ARG QWEN_VERSION=latest
 RUN npm install -g "@qwen-code/qwen-code@${QWEN_VERSION}"
