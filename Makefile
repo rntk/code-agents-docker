@@ -1,4 +1,4 @@
-.PHONY: build-all build run clean
+.PHONY: build-all build clean
 
 # Build all Docker images
 build-all:
@@ -25,18 +25,6 @@ build:
 		exit 1; \
 	fi; \
 	docker build --no-cache -t $(AGENT) agents/$(AGENT)
-
-# Run a specific CLI (usage: make run CLI=claude-code)
-run:
-	@if [ -z "$(CLI)" ]; then \
-		echo "Usage: make run CLI=<cli-name>"; \
-		exit 1; \
-	fi; \
-	if [ ! -d "agents/$(CLI)" ]; then \
-		echo "CLI $(CLI) not found in agents/"; \
-		exit 1; \
-	fi; \
-	docker run --rm -it -v $$(pwd):/app $(CLI)
 
 # Clean up dangling images
 clean:

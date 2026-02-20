@@ -24,29 +24,30 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 
 ## Quick Start
 
-### Using run-agent.sh (Recommended)
+### Using agent.sh (Recommended)
 
-The easiest way to run an AI agent is with the interactive `run-agent.sh` script:
+The easiest way to run or build an AI agent is with `agent.sh`:
 
 ```bash
-./run-agent.sh
+./agent.sh run
+./agent.sh build
 ```
 
 This script will:
 1. List all available AI agents
-2. Prompt you to select one (1-8)
-3. Run the selected agent with proper volume mounts and configuration
+2. Prompt you to select one
+3. Run or build the selected agent with proper volume mounts and configuration
 
 ### Using Makefile
 
-You can also build and run agents using the provided Makefile from the root of the repository:
+You can also build agents using the provided Makefile from the root of the repository:
 
 ```bash
 # Build all agents
 make build-all
 
-# Run a specific agent (e.g., claude-code)
-make run CLI=claude-code
+# Build a specific agent (e.g., claude-code)
+make build AGENT=claude-code
 ```
 
 ### Using Docker Directly
@@ -60,6 +61,8 @@ docker build -t <image-name> agents/<cli-directory>
 # Run it, mounting your current project to /app
 docker run --rm -it -v $(pwd):/app <image-name>
 ```
+
+> **Project-specific containers**: If you've generated a `Dockerfile.<agent>` for a target project using `generate_prompt.py`, use `agent.sh` in that project's directory (created/updated by the agent) to build and run — it manages all agents in one place via `agent.sh run` and `agent.sh build`.
 
 ## Skills & Project-Specific Dockerfiles
 

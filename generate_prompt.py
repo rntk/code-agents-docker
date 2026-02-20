@@ -31,7 +31,7 @@ Generate a project-specific Dockerfile and a companion bash script that gives an
 
 **The generated Dockerfile must pre-install all project dependencies** so the environment is ready for testing and execution immediately.
 
-**The generated bash script must provide convenient `build` and `run` commands** for the agent-specific Docker container.
+**The generated bash script (`agent.sh`) is a single unified script** that manages all agents. It must be created if missing, or updated to add/modify the entry for the current agent while keeping all other agents intact.
 
 ## Inputs
 
@@ -174,113 +174,96 @@ RUN case "$TARGETARCH" in \\
 
 ---
 
-### Step 5: Generate the Agent-Specific Bash Script
+### Step 5: Create or Update the Unified Agent Runner Script (`agent.sh`)
 
-Generate a bash script named `{CLI_AGENT}.sh` that provides convenient `build` and `run` commands.
+Instead of creating a per-agent script, maintain a single `agent.sh` that manages all agents.
+The current agent to add/update is: **{CLI_AGENT}**
 
-**Script Requirements:**
-
-1. **Location**: Save as `{CLI_AGENT}.sh` in the current project directory (same directory as `Dockerfile.{CLI_AGENT}`)
-
-2. **Commands**: Support two subcommands:
-   - `build` - Rebuild the Docker image with `--no-cache`
-   - `run` - Run the agent's Docker container in the current directory
-
-3. **Build command** (`./{CLI_AGENT}.sh build`):
-   - Build the Docker image using `Dockerfile.{CLI_AGENT}`
-   - Use `--no-cache` flag to ensure fresh build
-   - Tag the image with `{CLI_AGENT}:latest`
-   - Example: `docker build --no-cache -f Dockerfile.{CLI_AGENT} -t {CLI_AGENT}:latest .`
-
-4. **Run command** (`./{CLI_AGENT}.sh run [additional args]`):
-   - Run the container interactively with proper volume mounts
-   - Mount current directory to `/app`: `-v $(pwd):/app`
-   - Mount agent config directory (extracted from Reference Dockerfile/README)
-   - Pass required environment variables (from Reference README)
-   - Use `--rm` to auto-remove container on exit
-   - Pass through any additional arguments to the agent
-   - Example: `docker run --rm -it -v $(pwd):/app -v $HOME/.{CLI_AGENT_CONFIG_DIR}:/home/node/.{CLI_AGENT_CONFIG_DIR} [ENV_VARS] {CLI_AGENT}:latest "$@"`
-
-5. **Config directory extraction**:
-   - From Reference Dockerfile/README, identify the config directory (e.g., `/home/node/.claude` for claude-code)
-   - Extract the host-side config path (e.g., `$HOME/.claude`)
-   - Include all required volume mounts for config persistence
-
-6. **Environment variables**:
-   - Include any required environment variables from the Reference README
-   - Example: `-e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY` for claude-code
-
-7. **Script structure**:
-   - Use `#!/usr/bin/env bash` shebang
-   - Include usage help function
-   - Handle errors gracefully
-   - Support passing additional arguments to the run command
-
-**Example Script Structure:**
+**Reference `agent.sh`** (current contents — study the existing entries to understand numbering and style):
 ```bash
-#!/usr/bin/env bash
-set -e
+{RUN_AGENT_SCRIPT_CONTENT}
+```
 
-SCRIPT_DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
-IMAGE_NAME="{CLI_AGENT}:latest"
-DOCKERFILE="Dockerfile.{CLI_AGENT}"
+#### Target structure
 
-# Config directories (extracted from agent's Reference Dockerfile/README)
-HOST_CONFIG_DIR="$HOME/.{CLI_AGENT_CONFIG_DIR}"
-CONTAINER_CONFIG_DIR="/home/node/.{CLI_AGENT_CONFIG_DIR}"
+`agent.sh` must use the following structure with separate `run_agent` and `build_agent` functions and a top-level subcommand dispatch:
+
+```bash
+#!/bin/bash
+
+run_agent() {{
+    echo "Available AI Agents:"
+    echo "1. <agent-1>"
+    # ... one line per agent ...
+    read -rp "Select agent (1-N): " choice
+    case "$choice" in
+        1) sudo docker run --rm -it -v "$(pwd):/app" \
+               <VOLUME_MOUNTS> <ENV_VARS> <agent-1>:latest <FLAGS> ;;
+        # ... one branch per agent ...
+        *) echo "Invalid selection" ; exit 1 ;;
+    esac
+}}
+
+build_agent() {{
+    echo "Available AI Agents:"
+    echo "1. <agent-1>"
+    # ... one line per agent ...
+    read -rp "Select agent to build (1-N): " choice
+    case "$choice" in
+        1) docker build --no-cache -f Dockerfile.<agent-1> -t <agent-1>:latest . ;;
+        # ... one branch per agent ...
+        *) echo "Unknown agent" ; exit 1 ;;
+    esac
+}}
 
 usage() {{
-    echo "Usage: ${{0}} <command> [options]"
+    echo "Usage: $0 <run|build> [args...]"
     echo ""
     echo "Commands:"
-    echo "  build    Build the Docker image (no-cache)"
-    echo "  run      Run the agent container"
-    echo ""
-    echo "Examples:"
-    echo "  ${{0}} build"
-    echo "  ${{0}} run"
-    echo "  ${{0}} run --verbose --yolo"
+    echo "  run    Select and run an agent container (default)"
+    echo "  build  Build an agent Docker image"
     exit 1
 }}
 
-build() {{
-    echo "Building ${{IMAGE_NAME}}..."
-    docker build --no-cache -f "${{DOCKERFILE}}" -t "${{IMAGE_NAME}}" .
-    echo "Build complete."
-}}
-
-run() {{
-    echo "Running ${{IMAGE_NAME}}..."
-    docker run --rm -it \\
-        -v "$(pwd):/app" \\
-        -v "${{HOST_CONFIG_DIR}}:${{CONTAINER_CONFIG_DIR}}" \\
-        [ADDITIONAL_ENV_VARS] \\
-        "${{IMAGE_NAME}}" "$@"
-}}
-
-# Main
-if [ $# -lt 1 ]; then
-    usage
-fi
-
 case "$1" in
-    build)
-        build
-        ;;
-    run)
-        shift
-        run "$@"
-        ;;
-    *)
-        usage
-        ;;
+    run|"")  run_agent ;;
+    build)   build_agent ;;
+    *)       usage ;;
 esac
 ```
 
+#### If `agent.sh` already exists:
+
+1. **Detect structure**: Check whether the file already has the `run_agent()`/`build_agent()` function layout above.
+   - If it only has a flat `case "$choice" in` with no subcommand dispatch (like the reference above), **refactor** it: wrap the existing run logic inside a `run_agent()` function, add a `build_agent()` function, add `usage()`, and add the top-level `case "$1" in` dispatch. Preserve all existing `docker run` lines verbatim.
+   - If it already has the target structure, proceed directly to adding/updating entries.
+
+2. **Determine the entry number**: Count existing `echo "N. <agent>"` lines inside `run_agent` to find the highest N. The new entry uses N+1 as its number. Apply the same number consistently in the `echo` menu line, the `read -rp` range hint, and the `case` branch — in both `run_agent` and `build_agent`.
+
+3. **Add or update `{CLI_AGENT}`**:
+   - In `run_agent`: check if `{CLI_AGENT}` already has a `case` branch.
+     - If present: replace only that `docker run` line.
+     - If absent: append `echo "N+1. {CLI_AGENT}"` to the menu and add a new `case` branch.
+   - In `build_agent`: same — add or update `{CLI_AGENT}`'s `docker build` line.
+   - **Leave all other agent entries completely unchanged.**
+
+#### If `agent.sh` does not exist:
+- Create it from scratch using the target structure above.
+- Add `{CLI_AGENT}` as entry 1 in both `run_agent` and `build_agent`.
+
+#### Per-agent `run` command (derive from Reference Dockerfile/README):
+- Always include: `sudo docker run --rm -it -v "$(pwd):/app"`
+- Host config mount: `-v "$HOME/.{CLI_AGENT_CONFIG_DIR}:<CONTAINER_CONFIG_PATH>"`
+  - `{CLI_AGENT_CONFIG_DIR}` is the **short host-side directory name** (e.g., `claude`), used as `$HOME/.{CLI_AGENT_CONFIG_DIR}`.
+  - **`<CONTAINER_CONFIG_PATH>`** is the full path inside the container (e.g., `/home/node/.claude`) — extract it from the Reference Dockerfile by looking at `VOLUME`, `COPY --chown`, or `USER`/`WORKDIR` directives.
+- Additional config mounts if needed (e.g., individual files like `.claude.json`)
+- Required environment variables: `-e VAR_NAME` for any API keys noted in Reference README
+- Default agent flags: flags required for non-interactive/autonomous use (e.g., `--dangerously-skip-permissions`, `-a never`, `--yolo`)
+
 **Output:**
-- Save as `{CLI_AGENT}.sh` in the current project directory
-- Make executable: `chmod +x {CLI_AGENT}.sh`
-- Add header comments with usage instructions
+- Save as `agent.sh` in the current project directory
+- Make executable: `chmod +x agent.sh`
+- Preserve all existing agent entries; only add or update `{CLI_AGENT}`
 
 ---
 
@@ -309,9 +292,29 @@ Document required environment variables (set at runtime, not in Dockerfile).
 - **Deterministic installs**: Prefer verified binaries with checksums over `curl | bash`
 - **Lean but ready**: Keep image lean, but prioritize readiness over size
 - **Set entrypoint**: Container always starts in agent mode
+- **Single unified script**: `agent.sh` is the project's sole agent runner — do not generate per-agent shell scripts
+- **Non-destructive updates**: When updating `agent.sh`, only touch the `{CLI_AGENT}` entry — all other agents stay unchanged
 """
 
 def main():
+    # Load agent.sh from the same directory as this script (used as a reference example in the prompt).
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    run_agent_sh_path = os.path.join(script_dir, "agent.sh")
+    if os.path.exists(run_agent_sh_path):
+        with open(run_agent_sh_path, "r") as f:
+            run_agent_script_content = f.read()
+        # Warn if the file exists but doesn't look like a valid agent runner script.
+        has_case = 'case "$choice" in' in run_agent_script_content or "case '$choice' in" in run_agent_script_content
+        has_run_fn = "run_agent()" in run_agent_script_content or "run_agent ()" in run_agent_script_content
+        if not has_case and not has_run_fn:
+            print(
+                "Warning: agent.sh exists but does not contain the expected structure "
+                "('case \"$choice\" in' or 'run_agent()'). "
+                "The AI will attempt to parse and update it, but results may vary."
+            )
+    else:
+        run_agent_script_content = "# agent.sh not found — create from scratch using the target structure described in Step 5."
+
     agents_dir = "agents"
     if not os.path.isdir(agents_dir):
         # Fallback to current directory if agents_dir doesn't exist (depending on where script is run)
@@ -371,7 +374,8 @@ def main():
         DOCKERFILE_CONTENT=dockerfile_content,
         README_CONTENT=readme_content,
         CLI_AGENT_NAME_LOWER=agent_entrypoint,
-        CLI_AGENT_CONFIG_DIR=agent_config_dir
+        CLI_AGENT_CONFIG_DIR=agent_config_dir,
+        RUN_AGENT_SCRIPT_CONTENT=run_agent_script_content,
     )
 
     print("\n--- GENERATED PROMPT ---\n")
