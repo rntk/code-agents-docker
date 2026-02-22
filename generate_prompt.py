@@ -198,7 +198,7 @@ run_agent() {{
     read -rp "Select agent (1-N): " choice
     case "$choice" in
         1) sudo docker run --rm -it -v "$(pwd):/app" \
-               <VOLUME_MOUNTS> <ENV_VARS> <agent-1>:latest <FLAGS> ;;
+               <VOLUME_MOUNTS> <ENV_VARS> "$(basename $(pwd))-<agent-1>:latest" <FLAGS> ;;
         # ... one branch per agent ...
         *) echo "Invalid selection" ; exit 1 ;;
     esac
@@ -210,7 +210,7 @@ build_agent() {{
     # ... one line per agent ...
     read -rp "Select agent to build (1-N): " choice
     case "$choice" in
-        1) docker build --no-cache -f Dockerfile.<agent-1> -t <agent-1>:latest . ;;
+        1) docker build --no-cache -f Dockerfile.<agent-1> -t "$(basename $(pwd))-<agent-1>:latest" . ;;
         # ... one branch per agent ...
         *) echo "Unknown agent" ; exit 1 ;;
     esac
@@ -235,7 +235,7 @@ esac
 #### If `agent.sh` already exists:
 
 1. **Detect structure**: Check whether the file already has the `run_agent()`/`build_agent()` function layout above.
-   - If it only has a flat `case "$choice" in` with no subcommand dispatch (like the reference above), **refactor** it: wrap the existing run logic inside a `run_agent()` function, add a `build_agent()` function, add `usage()`, and add the top-level `case "$1" in` dispatch. Preserve all existing `docker run` lines verbatim.
+   - If it only has a flat `case "$choice" in` with no subcommand dispatch (like the reference above), **refactor** it: wrap the existing run logic inside a `run_agent()` function, add a `build_agent()` function, add `usage()`, and add the top-level `case "$1" in` dispatch. Preserve all existing `docker run` lines verbatim, but update any hardcoded global image tags (e.g., `<agent>:latest`) to the project-specific form `"$(basename $(pwd))-<agent>:latest"`.
    - If it already has the target structure, proceed directly to adding/updating entries.
 
 2. **Determine the entry number**: Count existing `echo "N. <agent>"` lines inside `run_agent` to find the highest N. The new entry uses N+1 as its number. Apply the same number consistently in the `echo` menu line, the `read -rp` range hint, and the `case` branch — in both `run_agent` and `build_agent`.
@@ -252,6 +252,7 @@ esac
 - Add `{CLI_AGENT}` as entry 1 in both `run_agent` and `build_agent`.
 
 #### Per-agent `run` command (derive from Reference Dockerfile/README):
+- **Image tag**: Use the project-specific form `"$(basename $(pwd))-{CLI_AGENT}:latest"` (evaluated at runtime) for both `docker build` and `docker run`. This ensures each project has its own image and avoids tag collisions across projects.
 - Always include: `sudo docker run --rm -it -v "$(pwd):/app"`
 - Host config mount: `-v "$HOME/.{CLI_AGENT_CONFIG_DIR}:<CONTAINER_CONFIG_PATH>"`
   - `{CLI_AGENT_CONFIG_DIR}` is the **short host-side directory name** (e.g., `claude`), used as `$HOME/.{CLI_AGENT_CONFIG_DIR}`.
@@ -264,6 +265,7 @@ esac
 - Save as `agent.sh` in the current project directory
 - Make executable: `chmod +x agent.sh`
 - Preserve all existing agent entries; only add or update `{CLI_AGENT}`
+- All image references must use the project-specific tag pattern `"$(basename $(pwd))-<agent>:latest"` (not a global `<agent>:latest`)
 
 ---
 
