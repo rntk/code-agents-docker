@@ -10,27 +10,27 @@ RUN groupadd -r -g ${GROUP_ID} appuser && \
 
 # Install system utilities
 RUN apt-get update && \
-    apt-get install -y curl bash git ripgrep iputils-ping && \
+    apt-get install -y git ripgrep curl iputils-ping && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
 
 # Create app directory and set ownership to the non-root user
 RUN mkdir -p /app && chown -R appuser:appuser /app
 WORKDIR /app
 
-# Update PATH to include .local/bin for the non-root user
+# Ensure appuser's local bin is on PATH and writable
+RUN mkdir -p /home/appuser/.local/bin && \
+    chown -R appuser:appuser /home/appuser/.local
 ENV PATH="/home/appuser/.local/bin:${PATH}"
 
 # Switch to non-root user
 USER appuser
 
-# Install kimi from code.kimi.com
-RUN curl -L code.kimi.com/install.sh | bash || \
-    (test -f /home/appuser/.local/bin/env && . /home/appuser/.local/bin/env && exit 0) || \
-    exit 0
-
-# Verify installation
-RUN which uv || echo "uv installed at /home/appuser/.local/bin/uv"
+# Install kimi-cli using uv (official recommended method)
+RUN uv tool install --python 3.13 kimi-cli
 
 # Set the entrypoint to run kimi
 ENTRYPOINT [ "kimi" ]
