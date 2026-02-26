@@ -1,5 +1,6 @@
 # Use a lightweight Python base image
-FROM python:3.12-slim
+# Python >=3.13 is required by codespeak-cli
+FROM python:3.13-slim
 
 # Copy uv binaries from the official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
