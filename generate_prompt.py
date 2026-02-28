@@ -13,6 +13,7 @@ AGENT_METADATA = {
     "kimi-cli": {"entrypoint": "kimi", "config_dir": "kimi"},
     "kiro-cli": {"entrypoint": "kiro-cli", "config_dir": "kiro"},
     "qwen-code": {"entrypoint": "qwen", "config_dir": "qwen"},
+    "codespeak": {"entrypoint": "codespeak", "config_dir": "codespeak"},
 }
 
 # The base prompt template from skills/generate-project-dockerfile/prompt.md
