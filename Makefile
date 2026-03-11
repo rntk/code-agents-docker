@@ -1,4 +1,4 @@
-.PHONY: build-all build clean
+.PHONY: build-all build run clean
 
 # Build all Docker images
 build-all:
@@ -10,7 +10,7 @@ build-all:
 		fi; \
 	done
 
-# Build a specific agent image (usage: make build AGENT=claude-code)
+# Build a specific agent image (usage: make build AGENT=junie-cli)
 build:
 	@if [ -z "$(AGENT)" ]; then \
 		echo "Usage: make build AGENT=<agent-name>"; \
@@ -25,6 +25,14 @@ build:
 		exit 1; \
 	fi; \
 	docker build --no-cache -t $(AGENT) agents/$(AGENT)
+
+# Run a specific agent image (usage: make run AGENT=junie-cli)
+run:
+	@if [ "$(AGENT)" = "junie-cli" ]; then \
+		sudo docker run --rm -it -v "$(shell pwd):/app" -v "$(HOME)/.junie:/home/ubuntu/.junie" -e JUNIE_API_KEY junie-cli:latest --brave; \
+	else \
+		./agent.sh run; \
+	fi
 
 # Clean up dangling images
 clean:

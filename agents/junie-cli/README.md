@@ -20,7 +20,7 @@ docker build -t junie-cli .
 export JUNIE_API_KEY="YOUR_API_KEY"
 
 # Run the container with volume mounts for working directory and config persistence
-docker run --rm -it -v $(pwd):/app -v $HOME/.junie:/home/ubuntu/.junie -e JUNIE_API_KEY=$JUNIE_API_KEY junie-cli
+docker run --rm -it -v $(pwd):/app -v $HOME/.junie:/home/ubuntu/.junie -e JUNIE_API_KEY=$JUNIE_API_KEY junie-cli --brave
 ```
 
 ## Configuration
