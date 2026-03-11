@@ -8,11 +8,12 @@ run_agent() {
     echo "4. codespeak"
     echo "5. devstral-cli"
     echo "6. gemini-cli"
-    echo "7. kimi-cli"
-    echo "8. kiro-cli"
-    echo "9. qwen-code"
+    echo "7. junie-cli"
+    echo "8. kimi-cli"
+    echo "9. kiro-cli"
+    echo "10. qwen-code"
 
-    read -rp "Select agent (1-9): " choice
+    read -rp "Select agent (1-10): " choice
 
     case "$choice" in
         1) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.claude:/home/node/.claude" -v "$HOME/.claude/.claude.json:/home/node/.claude.json" -e ANTHROPIC_API_KEY claude-code:latest --verbose --dangerously-skip-permissions ;;
@@ -21,9 +22,10 @@ run_agent() {
         4) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.codespeak:/home/codespeak/.codespeak" -e ANTHROPIC_API_KEY codespeak:latest ;;
         5) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.vibe:/home/appuser/.vibe" -e MISTRAL_API_KEY devstral-cli:latest ;;
         6) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/node/.gemini" -e GEMINI_API_KEY gemini-cli:latest --approval-mode=yolo ;;
-        7) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest ;;
-        8) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kiro:/home/ubuntu/.kiro" -v "$HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli" kiro-cli:latest chat --trust-all-tools ;;
-        9) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.qwen:/home/node/.qwen" qwen-code:latest --yolo ;;
+        7) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.junie:/home/ubuntu/.junie" -e JUNIE_API_KEY junie-cli:latest ;;
+        8) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest ;;
+        9) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kiro:/home/ubuntu/.kiro" -v "$HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli" kiro-cli:latest chat --trust-all-tools ;;
+        10) sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.qwen:/home/node/.qwen" qwen-code:latest --yolo ;;
         *) echo "Invalid selection" ; exit 1 ;;
     esac
 }
@@ -36,11 +38,12 @@ build_agent() {
     echo "4. codespeak"
     echo "5. devstral-cli"
     echo "6. gemini-cli"
-    echo "7. kimi-cli"
-    echo "8. kiro-cli"
-    echo "9. qwen-code"
+    echo "7. junie-cli"
+    echo "8. kimi-cli"
+    echo "9. kiro-cli"
+    echo "10. qwen-code"
 
-    read -rp "Select agent to build (1-9): " choice
+    read -rp "Select agent to build (1-10): " choice
 
     case "$choice" in
         1) docker build --no-cache -t claude-code:latest agents/claude-code ;;
@@ -49,9 +52,10 @@ build_agent() {
         4) docker build --no-cache -t codespeak:latest agents/codespeak ;;
         5) docker build --no-cache -t devstral-cli:latest agents/devstral-cli ;;
         6) docker build --no-cache -t gemini-cli:latest agents/gemini-cli ;;
-        7) docker build --no-cache -t kimi-cli:latest agents/kimi-cli ;;
-        8) docker build --no-cache -t kiro-cli:latest agents/kiro-cli ;;
-        9) docker build --no-cache -t qwen-code:latest agents/qwen-code ;;
+        7) docker build --no-cache -t junie-cli:latest agents/junie-cli ;;
+        8) docker build --no-cache -t kimi-cli:latest agents/kimi-cli ;;
+        9) docker build --no-cache -t kiro-cli:latest agents/kiro-cli ;;
+        10) docker build --no-cache -t qwen-code:latest agents/qwen-code ;;
         *) echo "Unknown agent" ; exit 1 ;;
     esac
 }

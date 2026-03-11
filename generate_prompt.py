@@ -10,6 +10,7 @@ AGENT_METADATA = {
     "copilot-cli": {"entrypoint": "copilot", "config_dir": "copilot"},
     "devstral-cli": {"entrypoint": "vibe", "config_dir": "vibe"},
     "gemini-cli": {"entrypoint": "gemini", "config_dir": "gemini"},
+    "junie-cli": {"entrypoint": "junie", "config_dir": "junie"},
     "kimi-cli": {"entrypoint": "kimi", "config_dir": "kimi"},
     "kiro-cli": {"entrypoint": "kiro-cli", "config_dir": "kiro"},
     "qwen-code": {"entrypoint": "qwen", "config_dir": "qwen"},
