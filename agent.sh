@@ -30,6 +30,58 @@ run_agent() {
     esac
 }
 
+update_agent() {
+    echo "Available AI Agents:"
+    echo "1. claude-code"
+    echo "2. codex-cli"
+    echo "3. copilot-cli"
+    echo "4. codespeak"
+    echo "5. devstral-cli"
+    echo "6. gemini-cli"
+    echo "7. junie-cli"
+    echo "8. kimi-cli"
+    echo "9. kiro-cli"
+    echo "10. qwen-code"
+
+    read -rp "Select agent to update (1-10): " choice
+
+    case "$choice" in
+        1)  IMAGE="claude-code:latest"
+            HINT="npm install -g @anthropic-ai/claude-code@latest" ;;
+        2)  IMAGE="codex-cli:latest"
+            HINT="npm install -g @openai/codex@latest" ;;
+        3)  IMAGE="copilot-cli:latest"
+            HINT="npm install -g @github/copilot@latest" ;;
+        4)  IMAGE="codespeak:latest"
+            HINT="uv tool install --force codespeak-cli" ;;
+        5)  IMAGE="devstral-cli:latest"
+            HINT="uv tool install --force mistral-vibe" ;;
+        6)  IMAGE="gemini-cli:latest"
+            HINT="npm install -g @google/gemini-cli@latest" ;;
+        7)  IMAGE="junie-cli:latest"
+            HINT="curl -fsSL https://junie.jetbrains.com/install.sh | bash" ;;
+        8)  IMAGE="kimi-cli:latest"
+            HINT="uv tool install --force --python 3.13 kimi-cli" ;;
+        9)  IMAGE="kiro-cli:latest"
+            HINT="curl -fsSL https://cli.kiro.dev/install | bash" ;;
+        10) IMAGE="qwen-code:latest"
+            HINT="npm install -g @qwen-code/qwen-code@latest" ;;
+        *)  echo "Invalid selection" ; exit 1 ;;
+    esac
+
+    CONTAINER_NAME="update-${IMAGE%%:*}-$$"
+    echo "Hint: $HINT"
+    sudo docker run -it --user root --entrypoint /bin/bash --name "$CONTAINER_NAME" "$IMAGE"
+
+    if sudo docker inspect "$CONTAINER_NAME" > /dev/null 2>&1; then
+        echo "Committing changes to $IMAGE ..."
+        sudo docker commit "$CONTAINER_NAME" "$IMAGE"
+        sudo docker rm "$CONTAINER_NAME"
+    else
+        echo "Container was not created; nothing to commit."
+    fi
+}
+
 build_agent() {
     echo "Available AI Agents:"
     echo "1. claude-code"
@@ -61,16 +113,18 @@ build_agent() {
 }
 
 usage() {
-    echo "Usage: $0 <run|build> [args...]"
+    echo "Usage: $0 <run|build|update> [args...]"
     echo ""
     echo "Commands:"
     echo "  run    Select and run an agent container (default)"
     echo "  build  Build an agent Docker image"
+    echo "  update Drop into a root shell to update an agent, then commit changes"
     exit 1
 }
 
 case "$1" in
     run|"")  run_agent ;;
     build)   build_agent ;;
+    update)  update_agent ;;
     *)       usage ;;
 esac

@@ -1,4 +1,4 @@
-.PHONY: build-all build run clean
+.PHONY: build-all build run update clean
 
 # Build all Docker images
 build-all:
@@ -33,6 +33,10 @@ run:
 	else \
 		./agent.sh run; \
 	fi
+
+# Update a specific agent's CLI in-place (drops into root shell, then commits)
+update:
+	@./agent.sh update
 
 # Clean up dangling images
 clean:
