@@ -26,6 +26,7 @@ To run `codespeak init` in a new directory:
 ```bash
 docker run -it --rm \
   -v "$(pwd):/app" \
+  -v "$HOME/.codespeak:/home/codespeak/.codespeak" \
   codespeak init
 ```
 
@@ -36,6 +37,7 @@ To build the project specified in your `spec/` directory:
 ```bash
 docker run -it --rm \
   -v "$(pwd):/app" \
+  -v "$HOME/.codespeak:/home/codespeak/.codespeak" \
   -e ANTHROPIC_API_KEY=your_api_key_here \
   codespeak build
 ```
@@ -47,6 +49,7 @@ To request changes:
 ```bash
 docker run -it --rm \
   -v "$(pwd):/app" \
+  -v "$HOME/.codespeak:/home/codespeak/.codespeak" \
   -e ANTHROPIC_API_KEY=your_api_key_here \
   codespeak change -m "Your change request here"
 ```
@@ -63,6 +66,7 @@ We've included a proxy script `auth_proxy.py` that listens on `0.0.0.0:8081` and
     ```bash
     docker run -it --rm \
       -v "$(pwd):/app" \
+      -v "$HOME/.codespeak:/home/codespeak/.codespeak" \
       -p 8081:8081 \
       --entrypoint /bin/bash \
       codespeak
@@ -84,10 +88,10 @@ We've included a proxy script `auth_proxy.py` that listens on `0.0.0.0:8081` and
 
 ## Tips
 
+- **Git**: Since the container has `git` installed, it can handle the repository initialization performed by `codespeak init`.
 - **Alias**: For convenience, you can add an alias to your `.bashrc` or `.zshrc`:
   ```bash
-  alias codespeak='docker run -it --rm -v "$(pwd):/app" -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY codespeak'
+  alias codespeak='docker run -it --rm -v "$(pwd):/app" -v "$HOME/.codespeak:/home/codespeak/.codespeak" -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY codespeak'
   ```
   Then you can just run `codespeak build`.
-- **Git**: Since the container has `git` installed, it can handle the repository initialization performed by `codespeak init`.
-- **Persisting Config**: If you use `codespeak login`, the credentials will be stored inside the container's `/home/codespeak` directory. To persist them, you might want to mount a volume to `/home/codespeak/.codespeak`. However, using `ANTHROPIC_API_KEY` is generally easier for Docker usage.
+- **Persisting Config**: If you use `codespeak login`, credentials are stored in `/home/codespeak/.codespeak` in the container. The examples above mount `$HOME/.codespeak` from your host to persist them across runs.
