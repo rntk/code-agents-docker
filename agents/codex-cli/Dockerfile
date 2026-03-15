@@ -19,17 +19,24 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /home/node/.npm-global && \
+    chown -R node:node /home/node/.npm-global
+
+# Set npm global prefix to user-writable directory
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV PATH="/home/node/.npm-global/bin:${PATH}"
+
+# Drop privileges before installing
+USER node
+WORKDIR /app
+
 # Configure Codex CLI version via build-arg
 ARG CODEX_VERSION=latest
 
-# Install Codex CLI globally with BuildKit cache and clean npm cache
-RUN --mount=type=cache,target=/root/.npm \
+# Install Codex CLI globally with BuildKit cache
+RUN --mount=type=cache,uid=1000,gid=1000,target=/home/node/.npm \
     npm install -g "@openai/codex@${CODEX_VERSION}" \
  && npm cache clean --force
-
-# Drop privileges
-USER node
-WORKDIR /app
 
 # Use ENTRYPOINT so additional args are passed to codex by default
 ENTRYPOINT ["codex"]
