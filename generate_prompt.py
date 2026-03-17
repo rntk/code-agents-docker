@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import sys
 
@@ -329,6 +330,10 @@ Document required environment variables (set at runtime, not in Dockerfile).
 """
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate a prompt for a coding agent Dockerfile.")
+    parser.add_argument("-o", "--out", default="prompt.md", help="Output file path (default: prompt.md)")
+    args = parser.parse_args()
+
     # Load agent.sh from the same directory as this script (used as a reference example in the prompt).
     script_dir = os.path.dirname(os.path.abspath(__file__))
     run_agent_sh_path = os.path.join(script_dir, "agent.sh")
@@ -415,6 +420,10 @@ def main():
     print("\n--- GENERATED PROMPT ---\n")
     print(final_prompt)
     print("\n--- END OF PROMPT ---")
+
+    with open(args.out, "w") as f:
+        f.write(final_prompt)
+    print(f"\nPrompt saved to: {args.out}")
 
 if __name__ == "__main__":
     main()
