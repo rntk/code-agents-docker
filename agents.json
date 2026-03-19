@@ -279,7 +279,7 @@
       "base_image": "Node.js 24",
       "non_root": true,
       "image_dir": "agents/pi-coding-agent",
-      "entrypoint": "pi-coding-agent",
+      "entrypoint": "pi",
       "config_dir_host": ".pi",
       "config_path_container": "/home/node/.pi",
       "docs_url": "https://github.com/mariozechner/pi-coding-agent",
