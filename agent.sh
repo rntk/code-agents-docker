@@ -18,10 +18,11 @@ run_agent() {
     echo "8. kimi-cli"
     echo "9. kiro-cli"
     echo "10. qwen-code"
-    echo "11. pi-coding-agent"
+    echo "11. opencode-cli"
+    echo "12. pi-coding-agent"
 # END GENERATED RUN MENU
     # BEGIN GENERATED AGENT COUNT
-AGENT_COUNT=11
+AGENT_COUNT=12
 # END GENERATED AGENT COUNT
 
     read -rp "Select agent (1-${AGENT_COUNT}): " choice
@@ -38,7 +39,8 @@ AGENT_COUNT=11
         8) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest ;;
         9) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kiro:/home/ubuntu/.kiro" -v "$HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli" kiro-cli:latest chat --trust-all-tools ;;
         10) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.qwen:/home/node/.qwen" qwen-code:latest --yolo ;;
-        11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
+        11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" opencode-cli:latest ;;
+        12) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
         *) echo "Invalid selection" ; exit 1 ;;
 # END GENERATED RUN CASE
     esac
@@ -57,7 +59,8 @@ update_agent() {
     echo "8. kimi-cli"
     echo "9. kiro-cli"
     echo "10. qwen-code"
-    echo "11. pi-coding-agent"
+    echo "11. opencode-cli"
+    echo "12. pi-coding-agent"
 # END GENERATED UPDATE MENU
 
     read -rp "Select agent to update (1-${AGENT_COUNT}): " choice
@@ -84,7 +87,9 @@ update_agent() {
             HINT="curl -fsSL https://cli.kiro.dev/install | bash" ;;
         10)  IMAGE="qwen-code:latest"
             HINT="npm install -g @qwen-code/qwen-code@latest" ;;
-        11)  IMAGE="pi-coding-agent:latest"
+        11)  IMAGE="opencode-cli:latest"
+            HINT="npm install -g opencode-ai@latest" ;;
+        12)  IMAGE="pi-coding-agent:latest"
             HINT="npm install -g @mariozechner/pi-coding-agent@latest" ;;
         *)  echo "Invalid selection" ; exit 1 ;;
 # END GENERATED UPDATE CASE
@@ -116,7 +121,8 @@ build_agent() {
     echo "8. kimi-cli"
     echo "9. kiro-cli"
     echo "10. qwen-code"
-    echo "11. pi-coding-agent"
+    echo "11. opencode-cli"
+    echo "12. pi-coding-agent"
 # END GENERATED BUILD MENU
 
     read -rp "Select agent to build (1-${AGENT_COUNT}): " choice
@@ -133,7 +139,8 @@ build_agent() {
         8) execute docker build --no-cache -t kimi-cli:latest agents/kimi-cli ;;
         9) execute docker build --no-cache -t kiro-cli:latest agents/kiro-cli ;;
         10) execute docker build --no-cache -t qwen-code:latest agents/qwen-code ;;
-        11) execute docker build --no-cache -t pi-coding-agent:latest agents/pi-coding-agent ;;
+        11) execute docker build --no-cache -t opencode-cli:latest agents/opencode-cli ;;
+        12) execute docker build --no-cache -t pi-coding-agent:latest agents/pi-coding-agent ;;
         *) echo "Unknown agent" ; exit 1 ;;
 # END GENERATED BUILD CASE
     esac

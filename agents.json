@@ -249,6 +249,30 @@
       }
     },
     {
+      "id": "opencode-cli",
+      "display_name": "OpenCode CLI",
+      "provider": "OpenCode",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/opencode-cli",
+      "entrypoint": "opencode",
+      "config_dir_host": ".opencode",
+      "config_path_container": "/home/node/.opencode",
+      "docs_url": "https://opencode.ai/",
+      "update_hint": "npm install -g opencode-ai@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.opencode",
+            "container": "/home/node/.opencode"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": []
+      }
+    },
+    {
       "id": "pi-coding-agent",
       "display_name": "Pi Coding Agent",
       "provider": "Mario Zechner",
