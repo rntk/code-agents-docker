@@ -43,10 +43,11 @@ docker run --rm -it \
 
 - The container runs as a non-root user `ubuntu` for security.
 - Mount your current directory to `/app` to work with local files.
-- The agent is installed via the official `.deb` package on an Ubuntu 24.04 base.
+- The image installs Kiro via the official `https://cli.kiro.dev/install` bootstrap script on an Ubuntu 24.04 base.
+- Persist both `~/.kiro` and `~/.local/share/kiro-cli` from the host if you want login state and local agent data to survive container restarts.
 
 ## Troubleshooting
 
 - **Browser Authentication**: Since the CLI runs in Docker, the browser redirect might not work automatically if it tries to open a local browser. You may need to copy the URL from the terminal and open it manually.
 - **Permission errors**: Ensure the mounted volume allows write access.
-- **Build failures**: Check Docker is running and you have internet access to download the AppImage.
+- **Build failures**: Check Docker is running and you have internet access for the Kiro install script.

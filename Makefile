@@ -1,4 +1,4 @@
-.PHONY: build-all build run update clean
+.PHONY: build-all build run update clean sync-metadata
 
 # Build all Docker images
 build-all:
@@ -37,6 +37,10 @@ run:
 # Update a specific agent's CLI in-place (drops into root shell, then commits)
 update:
 	@./agent.sh update
+
+# Sync generated root metadata from agents.json
+sync-metadata:
+	@python3 scripts/sync_agents.py
 
 # Clean up dangling images
 clean:

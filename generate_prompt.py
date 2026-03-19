@@ -1,25 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import sys
 
-# Per-agent metadata used by the prompt template.
-# Keep this explicit so command/config assumptions don't drift for irregular names.
-AGENT_METADATA = {
-    "claude-code": {"entrypoint": "claude", "config_dir": "claude", "update_hint": "npm install -g @anthropic-ai/claude-code@latest"},
-    "codex-cli": {"entrypoint": "codex", "config_dir": "codex", "update_hint": "npm install -g @openai/codex@latest"},
-    "copilot-cli": {"entrypoint": "copilot", "config_dir": "copilot", "update_hint": "npm install -g @github/copilot@latest"},
-    "devstral-cli": {"entrypoint": "vibe", "config_dir": "vibe", "update_hint": "uv tool install --force mistral-vibe"},
-    "gemini-cli": {"entrypoint": "gemini", "config_dir": "gemini", "update_hint": "npm install -g @google/gemini-cli@latest"},
-    "junie-cli": {"entrypoint": "junie", "config_dir": "junie", "update_hint": "curl -fsSL https://junie.jetbrains.com/install.sh | bash"},
-    "kimi-cli": {"entrypoint": "kimi", "config_dir": "kimi", "update_hint": "uv tool install --force --python 3.13 kimi-cli"},
-    "kiro-cli": {"entrypoint": "kiro-cli", "config_dir": "kiro", "update_hint": "curl -fsSL https://cli.kiro.dev/install | bash"},
-    "qwen-code": {"entrypoint": "qwen", "config_dir": "qwen", "update_hint": "npm install -g @qwen-code/qwen-code@latest"},
-    "codespeak": {"entrypoint": "codespeak", "config_dir": "codespeak", "update_hint": "uv tool install --force codespeak-cli"},
-}
-
-# The base prompt template from skills/generate-project-dockerfile/prompt.md
-# Updated to refer to embedded content and improved for use with agents.
+# The base prompt template is embedded in this file and parameterized from agents.json.
 PROMPT_TEMPLATE = """# Skill: Generate Project-Specific Dockerfile and Bash Script
 
 You are a DevOps engineer specializing in containerized development environments for AI coding agents.
@@ -334,8 +319,18 @@ def main():
     parser.add_argument("-o", "--out", default="prompt.md", help="Output file path (default: prompt.md)")
     args = parser.parse_args()
 
-    # Load agent.sh from the same directory as this script (used as a reference example in the prompt).
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    manifest_path = os.path.join(script_dir, "agents.json")
+    try:
+        with open(manifest_path, "r") as f:
+            manifest = json.load(f)
+    except FileNotFoundError:
+        print("Error: agents.json not found.")
+        sys.exit(1)
+
+    agent_metadata_map = {agent["id"]: agent for agent in manifest["agents"]}
+
+    # Load agent.sh from the same directory as this script (used as a reference example in the prompt).
     run_agent_sh_path = os.path.join(script_dir, "agent.sh")
     if os.path.exists(run_agent_sh_path):
         with open(run_agent_sh_path, "r") as f:
@@ -367,10 +362,10 @@ def main():
         print(f"Error: No agents found in '{agents_dir}'.")
         sys.exit(1)
 
-    unsupported_agents = [agent for agent in agents if agent not in AGENT_METADATA]
+    unsupported_agents = [agent for agent in agents if agent not in agent_metadata_map]
     if unsupported_agents:
         print("Error: Missing metadata for agent(s): " + ", ".join(sorted(unsupported_agents)))
-        print("Please add entrypoint/config_dir metadata in AGENT_METADATA.")
+        print("Please add the missing entries to agents.json.")
         sys.exit(1)
 
     print("Available agents:")
@@ -402,9 +397,9 @@ def main():
         with open(readme_path, "r") as f:
             readme_content = f.read()
 
-    agent_metadata = AGENT_METADATA[selected_agent]
+    agent_metadata = agent_metadata_map[selected_agent]
     agent_entrypoint = agent_metadata["entrypoint"]
-    agent_config_dir = agent_metadata["config_dir"]
+    agent_config_dir = agent_metadata["config_dir_host"].removeprefix(".")
     agent_update_hint = agent_metadata["update_hint"]
 
     final_prompt = PROMPT_TEMPLATE.format(

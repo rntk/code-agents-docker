@@ -1,0 +1,252 @@
+{
+  "agents": [
+    {
+      "id": "claude-code",
+      "display_name": "Claude Code",
+      "provider": "Anthropic",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/claude-code",
+      "entrypoint": "claude",
+      "config_dir_host": ".claude",
+      "config_path_container": "/home/node/.claude",
+      "docs_url": "https://docs.anthropic.com/en/docs/claude-code/overview",
+      "update_hint": "npm install -g @anthropic-ai/claude-code@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.claude",
+            "container": "/home/node/.claude"
+          },
+          {
+            "host": "$HOME/.claude/.claude.json",
+            "container": "/home/node/.claude.json"
+          }
+        ],
+        "env_vars": ["ANTHROPIC_API_KEY"],
+        "docker_args": [],
+        "command_args": ["--verbose", "--dangerously-skip-permissions"]
+      }
+    },
+    {
+      "id": "codex-cli",
+      "display_name": "Codex CLI",
+      "provider": "OpenAI",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/codex-cli",
+      "entrypoint": "codex",
+      "config_dir_host": ".codex",
+      "config_path_container": "/home/node/.codex",
+      "docs_url": "https://github.com/openai/codex",
+      "update_hint": "npm install -g @openai/codex@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.codex",
+            "container": "/home/node/.codex"
+          }
+        ],
+        "env_vars": ["OPENAI_API_KEY"],
+        "docker_args": [],
+        "command_args": ["-a", "never", "--sandbox", "danger-full-access"]
+      }
+    },
+    {
+      "id": "copilot-cli",
+      "display_name": "Copilot CLI",
+      "provider": "GitHub",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/copilot-cli",
+      "entrypoint": "copilot",
+      "config_dir_host": ".copilot",
+      "config_path_container": "/home/node/.copilot",
+      "docs_url": "https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-copilot-cli",
+      "update_hint": "npm install -g @github/copilot@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.copilot",
+            "container": "/home/node/.copilot"
+          }
+        ],
+        "env_vars": ["COPILOT_GITHUB_TOKEN"],
+        "docker_args": [],
+        "command_args": ["--allow-all"]
+      }
+    },
+    {
+      "id": "codespeak",
+      "display_name": "CodeSpeak",
+      "provider": "Anthropic",
+      "base_image": "Python 3.13",
+      "non_root": true,
+      "image_dir": "agents/codespeak",
+      "entrypoint": "codespeak",
+      "config_dir_host": ".codespeak",
+      "config_path_container": "/home/codespeak/.codespeak",
+      "docs_url": "https://codespeak.io",
+      "update_hint": "uv tool install --force codespeak-cli",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.codespeak",
+            "container": "/home/codespeak/.codespeak"
+          }
+        ],
+        "env_vars": ["ANTHROPIC_API_KEY"],
+        "docker_args": ["--entrypoint", "/bin/bash"],
+        "command_args": []
+      }
+    },
+    {
+      "id": "devstral-cli",
+      "display_name": "Vibe CLI",
+      "provider": "Mistral",
+      "base_image": "Python 3.13",
+      "non_root": true,
+      "image_dir": "agents/devstral-cli",
+      "entrypoint": "vibe",
+      "config_dir_host": ".vibe",
+      "config_path_container": "/home/appuser/.vibe",
+      "docs_url": "https://mistral.ai/",
+      "update_hint": "uv tool install --force mistral-vibe",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.vibe",
+            "container": "/home/appuser/.vibe"
+          }
+        ],
+        "env_vars": ["MISTRAL_API_KEY"],
+        "docker_args": [],
+        "command_args": []
+      }
+    },
+    {
+      "id": "gemini-cli",
+      "display_name": "Gemini CLI",
+      "provider": "Google",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/gemini-cli",
+      "entrypoint": "gemini",
+      "config_dir_host": ".gemini",
+      "config_path_container": "/home/node/.gemini",
+      "docs_url": "https://github.com/google-gemini/gemini-cli",
+      "update_hint": "npm install -g @google/gemini-cli@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.gemini",
+            "container": "/home/node/.gemini"
+          }
+        ],
+        "env_vars": ["GEMINI_API_KEY"],
+        "docker_args": [],
+        "command_args": ["--approval-mode=yolo"]
+      }
+    },
+    {
+      "id": "junie-cli",
+      "display_name": "Junie CLI",
+      "provider": "JetBrains",
+      "base_image": "Ubuntu 24.04",
+      "non_root": true,
+      "image_dir": "agents/junie-cli",
+      "entrypoint": "junie",
+      "config_dir_host": ".junie",
+      "config_path_container": "/home/ubuntu/.junie",
+      "docs_url": "https://junie.jetbrains.com/docs/junie-cli.html",
+      "update_hint": "curl -fsSL https://junie.jetbrains.com/install.sh | bash",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.junie",
+            "container": "/home/ubuntu/.junie"
+          }
+        ],
+        "env_vars": ["JUNIE_API_KEY"],
+        "docker_args": [],
+        "command_args": ["--brave"]
+      }
+    },
+    {
+      "id": "kimi-cli",
+      "display_name": "Kimi CLI",
+      "provider": "Moonshot AI",
+      "base_image": "Python 3.13",
+      "non_root": true,
+      "image_dir": "agents/kimi-cli",
+      "entrypoint": "kimi",
+      "config_dir_host": ".kimi",
+      "config_path_container": "/home/appuser/.kimi",
+      "docs_url": "https://www.kimi.com/code/docs/en/kimi-cli.html",
+      "update_hint": "uv tool install --force --python 3.13 kimi-cli",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.kimi",
+            "container": "/home/appuser/.kimi"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": []
+      }
+    },
+    {
+      "id": "kiro-cli",
+      "display_name": "Kiro CLI",
+      "provider": "AWS",
+      "base_image": "Ubuntu 24.04",
+      "non_root": true,
+      "image_dir": "agents/kiro-cli",
+      "entrypoint": "kiro-cli",
+      "config_dir_host": ".kiro",
+      "config_path_container": "/home/ubuntu/.kiro",
+      "docs_url": "https://kiro.dev/docs/cli/installation/",
+      "update_hint": "curl -fsSL https://cli.kiro.dev/install | bash",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.kiro",
+            "container": "/home/ubuntu/.kiro"
+          },
+          {
+            "host": "$HOME/.local/share/kiro-cli",
+            "container": "/home/ubuntu/.local/share/kiro-cli"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": ["chat", "--trust-all-tools"]
+      }
+    },
+    {
+      "id": "qwen-code",
+      "display_name": "Qwen Code",
+      "provider": "Alibaba",
+      "base_image": "Node.js 24",
+      "non_root": true,
+      "image_dir": "agents/qwen-code",
+      "entrypoint": "qwen",
+      "config_dir_host": ".qwen",
+      "config_path_container": "/home/node/.qwen",
+      "docs_url": "https://qwen.ai",
+      "update_hint": "npm install -g @qwen-code/qwen-code@latest",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.qwen",
+            "container": "/home/node/.qwen"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": ["--yolo"]
+      }
+    }
+  ]
+}
