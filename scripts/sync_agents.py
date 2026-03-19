@@ -90,7 +90,8 @@ def render_run_case(agents):
         parts = ['execute sudo docker run --rm -it -v "$(pwd):/app"']
         for mount in agent["run"]["mounts"]:
             mount_value = f'{mount["host"]}:{mount["container"]}'
-            parts.append(f"-v {shlex.quote(mount_value)}")
+            # Use double quotes for mounts to allow variable expansion
+            parts.append(f'-v "{mount_value}"')
         for env_var in agent["run"]["env_vars"]:
             parts.append(f"-e {env_var}=\"${{{env_var}}}\"")
         parts.extend(shlex.quote(arg) for arg in agent["run"]["docker_args"])
