@@ -1,4 +1,4 @@
-.PHONY: build-all build run update clean sync-metadata
+.PHONY: build-all build run update clean sync-metadata generate-prompt
 
 # Build all Docker images
 build-all:
@@ -41,6 +41,10 @@ update:
 # Sync generated root metadata from agents.json
 sync-metadata:
 	@python3 scripts/sync_agents.py
+
+# Generate a project-specific Dockerfile prompt (interactive)
+generate-prompt:
+	@python3 scripts/generate_prompt.py
 
 # Clean up dangling images
 clean:

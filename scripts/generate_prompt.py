@@ -320,7 +320,8 @@ def main():
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    manifest_path = os.path.join(script_dir, "agents.json")
+    root_dir = os.path.dirname(script_dir)
+    manifest_path = os.path.join(root_dir, "agents.json")
     try:
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
@@ -330,8 +331,8 @@ def main():
 
     agent_metadata_map = {agent["id"]: agent for agent in manifest["agents"]}
 
-    # Load agent.sh from the same directory as this script (used as a reference example in the prompt).
-    run_agent_sh_path = os.path.join(script_dir, "agent.sh")
+    # Load agent.sh from the project root (used as a reference example in the prompt).
+    run_agent_sh_path = os.path.join(root_dir, "agent.sh")
     if os.path.exists(run_agent_sh_path):
         with open(run_agent_sh_path, "r") as f:
             run_agent_script_content = f.read()
@@ -347,11 +348,11 @@ def main():
     else:
         run_agent_script_content = "# agent.sh not found — create from scratch using the target structure described in Step 5."
 
-    agents_dir = "agents"
+    agents_dir = os.path.join(root_dir, "agents")
     if not os.path.isdir(agents_dir):
         # Fallback to current directory if agents_dir doesn't exist (depending on where script is run)
-        if os.path.isdir("../agents"):
-            agents_dir = "../agents"
+        if os.path.isdir("agents"):
+            agents_dir = "agents"
         else:
             print(f"Error: 'agents' directory not found.")
             sys.exit(1)

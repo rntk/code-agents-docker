@@ -26,7 +26,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 - `agents/`: Individual Docker environments for each AI coding CLI.
 - `agents.json`: Shared metadata used by the root launcher, root README, and prompt generator.
 - `scripts/sync_agents.py`: Syncs generated sections in the root README and `agent.sh` from `agents.json`.
-- `generate_prompt.py`: Prompt generator that embeds the template directly and reads agent metadata from `agents.json`.
+- `scripts/generate_prompt.py`: Prompt generator that embeds the template directly and reads agent metadata from `agents.json`.
 - `Makefile`: Standardized commands for building and running agents.
 
 ## Quick Start
@@ -58,6 +58,9 @@ make build AGENT=claude-code
 
 # Regenerate shared metadata sections after editing agents.json
 make sync-metadata
+
+# Generate a project-specific Dockerfile prompt (interactive)
+make generate-prompt
 ```
 
 ### Using Docker Directly
@@ -72,7 +75,7 @@ docker build -t <image-name> agents/<cli-directory>
 docker run --rm -it -v $(pwd):/app <image-name>
 ```
 
-> **Project-specific containers**: If you've generated a `Dockerfile.<agent>` for a target project using `generate_prompt.py`, use the generated prompt in that target repository and let the agent create or update the local `agent.sh` there.
+> **Project-specific containers**: If you've generated a `Dockerfile.<agent>` for a target project using `scripts/generate_prompt.py`, use the generated prompt in that target repository and let the agent create or update the local `agent.sh` there.
 
 ## Project-Specific Dockerfiles
 
@@ -80,15 +83,16 @@ In addition to the base agent images, this repository includes a prompt generato
 
 ### Project-Specific Dockerfile Generator
 
-If you want to create a Dockerfile tailored for a specific software project that includes one of these AI agents, you can use the `generate_prompt.py` script. 
+If you want to create a Dockerfile tailored for a specific software project that includes one of these AI agents, you can use the `scripts/generate_prompt.py` script. 
 
 This tool embeds the project-specific Dockerfile template directly in the repository. It generates a comprehensive prompt that you can paste into an AI agent to produce a `Dockerfile` tailored to your target project's technology stack while pre-installing dependencies.
 
 #### Usage
 
-1. Run the script from the root:
+1. Run from the root:
    ```bash
-   python3 generate_prompt.py
+   make generate-prompt
+   # or directly: python3 scripts/generate_prompt.py
    ```
 2. Select the agent you want to integrate from the list.
 3. Copy the generated prompt.
