@@ -17,6 +17,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 | [kimi-cli](./agents/kimi-cli/) | Kimi CLI | Moonshot AI | Python 3.13 | Yes |
 | [kiro-cli](./agents/kiro-cli/) | Kiro CLI | AWS | Ubuntu 24.04 | Yes |
 | [qwen-code](./agents/qwen-code/) | Qwen Code | Alibaba | Node.js 24 | Yes |
+| [pi-coding-agent](./agents/pi-coding-agent/) | Pi Coding Agent | Mario Zechner | Node.js 24 | Yes |
 <!-- END GENERATED INCLUDED CLIS -->
 
 ## Repository Structure
