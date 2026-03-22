@@ -27,7 +27,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 - `agents.json`: Shared metadata used by the root launcher, root README, and prompt generator.
 - `scripts/sync_agents.py`: Syncs generated sections in the root README and `agent.sh` from `agents.json`.
 - `scripts/generate_prompt.py`: Prompt generator that embeds the template directly and reads agent metadata from `agents.json`.
-- `Makefile`: Standardized commands for building and running agents.
+- `scripts/make.py`: Build, sync, and clean commands.
 
 ## Quick Start
 
@@ -45,22 +45,22 @@ This script will:
 2. Prompt you to select one
 3. Run or build the selected agent with proper volume mounts and configuration
 
-### Using Makefile
+### Using make.py
 
-You can also build agents using the provided Makefile from the root of the repository:
+You can also build agents using the provided Python script from the root of the repository:
 
 ```bash
 # Build all agents
-make build-all
+python3 scripts/make.py build-all
 
 # Build a specific agent (e.g., claude-code)
-make build AGENT=claude-code
+python3 scripts/make.py build claude-code
 
 # Regenerate shared metadata sections after editing agents.json
-make sync-metadata
+python3 scripts/make.py sync-metadata
 
 # Generate a project-specific Dockerfile prompt (interactive)
-make generate-prompt
+python3 scripts/make.py generate-prompt
 ```
 
 ### Using Docker Directly
@@ -91,7 +91,7 @@ This tool embeds the project-specific Dockerfile template directly in the reposi
 
 1. Run from the root:
    ```bash
-   make generate-prompt
+   python3 scripts/make.py generate-prompt
    # or directly: python3 scripts/generate_prompt.py
    ```
 2. Select the agent you want to integrate from the list.

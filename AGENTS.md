@@ -12,9 +12,9 @@ AI Coding CLI Containers — Dockerized environments for 12 AI-powered coding CL
 ├── agents.json           # Single source of truth for all agent metadata
 ├── agent.sh              # Interactive menu script (run/build/update agents)
 ├── scripts/
+│   ├── make.py           # Build/sync/clean CLI (replaces Makefile)
 │   ├── sync_agents.py    # Syncs agents.json → agent.sh and README.md
 │   └── generate_prompt.py # Prompt generator for project-specific Dockerfiles
-├── Makefile              # Standardized build/sync commands
 ├── AGENTS.md             # This file
 └── README.md             # Root docs (sections auto-generated from agents.json)
 ```
@@ -23,28 +23,28 @@ AI Coding CLI Containers — Dockerized environments for 12 AI-powered coding CL
 
 ```bash
 # Build all agent images (iterates agents/*/Dockerfile)
-make build-all
+python3 scripts/make.py build-all
 
 # Build a single agent image
-make build AGENT=claude-code        # builds agents/claude-code/Dockerfile
+python3 scripts/make.py build claude-code   # builds agents/claude-code/Dockerfile
 
 # Run an agent interactively (interactive menu)
-./agent.sh run                      # or: make run
+./agent.sh run                              # or: python3 scripts/make.py run
 
 # Update an agent's CLI in-place (root shell → commit)
 ./agent.sh update
 
 # Sync generated sections in agent.sh and README.md from agents.json
-make sync-metadata                  # runs: python3 scripts/sync_agents.py
+python3 scripts/make.py sync-metadata       # runs: python3 scripts/sync_agents.py
 
 # Generate a project-specific Dockerfile prompt (interactive)
-make generate-prompt              # or: python3 scripts/generate_prompt.py -o prompt.md
+python3 scripts/make.py generate-prompt     # or: python3 scripts/generate_prompt.py -o prompt.md
 
 # Clean dangling Docker images
-make clean
+python3 scripts/make.py clean
 
 # Validate a Python script parses cleanly (no formal linter configured)
-python3 scripts/sync_agents.py      # also runs the sync
+python3 scripts/sync_agents.py              # also runs the sync
 python3 scripts/generate_prompt.py          # will error on parse issues
 ```
 
@@ -52,7 +52,7 @@ There is no test suite. Validation is done by `sync_agents.py` which checks agen
 
 ## Code Style
 
-### Python (`scripts/sync_agents.py`, `scripts/generate_prompt.py`)
+### Python (`scripts/make.py`, `scripts/sync_agents.py`, `scripts/generate_prompt.py`)
 
 - **Shebang**: `#!/usr/bin/env python3` on first line
 - **Imports**: stdlib only, one per line, grouped: stdlib first then blank line before local imports. Use `from pathlib import Path` style for path operations.
@@ -102,8 +102,8 @@ There is no test suite. Validation is done by `sync_agents.py` which checks agen
 
 1. Create `agents/<name>/Dockerfile` and `agents/<name>/README.md`
 2. Add metadata entry to `agents.json` (all fields listed above)
-3. Run `make sync-metadata` to regenerate `agent.sh` and `README.md` generated sections
-4. Verify: `make build AGENT=<name>`
+3. Run `python3 scripts/make.py sync-metadata` to regenerate `agent.sh` and `README.md` generated sections
+4. Verify: `python3 scripts/make.py build <name>`
 
 Agent naming: use lowercase kebab-case (e.g., `my-new-cli`). The `id` field in `agents.json` must match the directory name under `agents/`.
 
@@ -132,11 +132,11 @@ Only edit the manual boilerplate in `agent.sh`: the `execute()` helper, the `usa
 
 ## Key Conventions
 
-- Generated sections in `agent.sh` and `README.md` must never be edited manually — always use `make sync-metadata`
+- Generated sections in `agent.sh` and `README.md` must never be edited manually — always use `python3 scripts/make.py sync-metadata`
 - Project working directory is mounted at `/app` in all containers
 - Agent config dirs mounted from `$HOME/.<config_dir>` on host
 - All containers run as non-root users (security best practice)
 - No test framework exists; validation is the JSON schema checks in `sync_agents.py`
 - No Cursor rules (`.cursor/rules/`), Copilot instructions (`.github/copilot-instructions.md`), or `.cursorrules` exist
 - When modifying `agent.sh`, only edit manual boilerplate — generated sections are overwritten by `sync_agents.py`
-- Always run `make sync-metadata` after editing `agents.json` to keep all files in sync
+- Always run `python3 scripts/make.py sync-metadata` after editing `agents.json` to keep all files in sync
