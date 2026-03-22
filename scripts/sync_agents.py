@@ -121,6 +121,20 @@ def render_build_case(agents):
     return "\n".join(lines)
 
 
+def render_rebuild_all_case(agents):
+    total = len(agents)
+    lines = []
+    for index, agent in enumerate(agents, start=1):
+        lines.append(f'    echo "[{index}/{total}] {agent["id"]}"')
+        image_dir = agent["image_dir"]
+        agent_id = agent["id"]
+        lines.append(
+            f'    execute docker build --no-cache -t {agent_id}:latest {image_dir}'
+            f' && succeeded+=("{agent_id}") || failed+=("{agent_id}")'
+        )
+    return "\n".join(lines)
+
+
 def sync_readme(agents):
     text = README_PATH.read_text()
     updated = replace_section(
@@ -183,6 +197,13 @@ def sync_agent_sh(agents):
         "# BEGIN GENERATED BUILD CASE",
         "# END GENERATED BUILD CASE",
         render_build_case(agents),
+        AGENT_SH_PATH,
+    )
+    updated = replace_section(
+        updated,
+        "# BEGIN GENERATED REBUILD ALL CASE",
+        "# END GENERATED REBUILD ALL CASE",
+        render_rebuild_all_case(agents),
         AGENT_SH_PATH,
     )
     AGENT_SH_PATH.write_text(updated)

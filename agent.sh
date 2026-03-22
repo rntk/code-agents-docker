@@ -146,19 +146,62 @@ build_agent() {
     esac
 }
 
+rebuild_all() {
+    echo "Rebuilding all agent images..."
+    local failed=()
+    local succeeded=()
+
+    # BEGIN GENERATED REBUILD ALL CASE
+    echo "[1/12] claude-code"
+    execute docker build --no-cache -t claude-code:latest agents/claude-code && succeeded+=("claude-code") || failed+=("claude-code")
+    echo "[2/12] codex-cli"
+    execute docker build --no-cache -t codex-cli:latest agents/codex-cli && succeeded+=("codex-cli") || failed+=("codex-cli")
+    echo "[3/12] copilot-cli"
+    execute docker build --no-cache -t copilot-cli:latest agents/copilot-cli && succeeded+=("copilot-cli") || failed+=("copilot-cli")
+    echo "[4/12] codespeak"
+    execute docker build --no-cache -t codespeak:latest agents/codespeak && succeeded+=("codespeak") || failed+=("codespeak")
+    echo "[5/12] devstral-cli"
+    execute docker build --no-cache -t devstral-cli:latest agents/devstral-cli && succeeded+=("devstral-cli") || failed+=("devstral-cli")
+    echo "[6/12] gemini-cli"
+    execute docker build --no-cache -t gemini-cli:latest agents/gemini-cli && succeeded+=("gemini-cli") || failed+=("gemini-cli")
+    echo "[7/12] junie-cli"
+    execute docker build --no-cache -t junie-cli:latest agents/junie-cli && succeeded+=("junie-cli") || failed+=("junie-cli")
+    echo "[8/12] kimi-cli"
+    execute docker build --no-cache -t kimi-cli:latest agents/kimi-cli && succeeded+=("kimi-cli") || failed+=("kimi-cli")
+    echo "[9/12] kiro-cli"
+    execute docker build --no-cache -t kiro-cli:latest agents/kiro-cli && succeeded+=("kiro-cli") || failed+=("kiro-cli")
+    echo "[10/12] qwen-code"
+    execute docker build --no-cache -t qwen-code:latest agents/qwen-code && succeeded+=("qwen-code") || failed+=("qwen-code")
+    echo "[11/12] opencode-cli"
+    execute docker build --no-cache -t opencode-cli:latest agents/opencode-cli && succeeded+=("opencode-cli") || failed+=("opencode-cli")
+    echo "[12/12] pi-coding-agent"
+    execute docker build --no-cache -t pi-coding-agent:latest agents/pi-coding-agent && succeeded+=("pi-coding-agent") || failed+=("pi-coding-agent")
+# END GENERATED REBUILD ALL CASE
+
+    echo ""
+    echo -e "\033[1;32m[DONE]\033[0m Rebuild complete."
+    echo "  Succeeded (${#succeeded[@]}): ${succeeded[*]:-none}"
+    if [ ${#failed[@]} -gt 0 ]; then
+        echo -e "  \033[1;31mFailed    (${#failed[@]}): ${failed[*]}\033[0m"
+        exit 1
+    fi
+}
+
 usage() {
-    echo "Usage: $0 <run|build|update> [args...]"
+    echo "Usage: $0 <run|build|update|rebuild-all> [args...]"
     echo ""
     echo "Commands:"
-    echo "  run    Select and run an agent container (default)"
-    echo "  build  Build an agent Docker image"
-    echo "  update Drop into a root shell to update an agent, then commit changes"
+    echo "  run         Select and run an agent container (default)"
+    echo "  build       Build a single agent Docker image"
+    echo "  rebuild-all Rebuild ALL agent Docker images sequentially"
+    echo "  update      Drop into a root shell to update an agent, then commit changes"
     exit 1
 }
 
 case "$1" in
-    run|"")  run_agent ;;
-    build)   build_agent ;;
-    update)  update_agent ;;
-    *)       usage ;;
+    run|"")       run_agent ;;
+    build)        build_agent ;;
+    rebuild-all)  rebuild_all ;;
+    update)       update_agent ;;
+    *)            usage ;;
 esac
