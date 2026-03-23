@@ -105,18 +105,18 @@
       "display_name": "Vibe CLI",
       "provider": "Mistral",
       "base_image": "Python 3.13",
-      "non_root": true,
+      "non_root": false,
       "image_dir": "agents/devstral-cli",
       "entrypoint": "vibe",
       "config_dir_host": ".vibe",
-      "config_path_container": "/home/appuser/.vibe",
+      "config_path_container": "/root/.vibe",
       "docs_url": "https://mistral.ai/",
       "update_hint": "uv tool install --force mistral-vibe",
       "run": {
         "mounts": [
           {
             "host": "$HOME/.vibe",
-            "container": "/home/appuser/.vibe"
+            "container": "/root/.vibe"
           }
         ],
         "env_vars": ["MISTRAL_API_KEY"],

@@ -20,14 +20,14 @@ docker build -t devstral-cli .
 export MISTRAL_API_KEY="YOUR_API_KEY"
 
 # Run the container with volume mounts for working directory and config persistence
-docker run --rm -it -v $(pwd):/app -v $HOME/.vibe:/home/appuser/.vibe -e MISTRAL_API_KEY=$MISTRAL_API_KEY devstral-cli
+docker run --rm -it -v $(pwd):/app -v $HOME/.vibe:/root/.vibe -e MISTRAL_API_KEY=$MISTRAL_API_KEY devstral-cli
 ```
 
 ## Configuration
 
-- The container runs as a non-root user for security.
+- The container runs as root.
 - Mount your current directory to `/app` to work with local files.
-- Config is persisted in `~/.vibe` on the host (mapped to `/home/appuser/.vibe` in container).
+- Config is persisted in `~/.vibe` on the host (mapped to `/root/.vibe` in container).
 - Pass API keys via environment variables to avoid storing them in the image.
 
 ## Troubleshooting
