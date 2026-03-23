@@ -33,7 +33,7 @@ AGENT_COUNT=12
         2) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.codex:/home/node/.codex" -e OPENAI_API_KEY="${OPENAI_API_KEY}" codex-cli:latest -a never --sandbox danger-full-access ;;
         3) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.copilot:/home/node/.copilot" -e COPILOT_GITHUB_TOKEN="${COPILOT_GITHUB_TOKEN}" copilot-cli:latest --allow-all ;;
         4) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.codespeak:/home/codespeak/.codespeak" -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" --entrypoint /bin/bash codespeak:latest ;;
-        5) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.vibe:/root/.vibe" -e MISTRAL_API_KEY="${MISTRAL_API_KEY}" devstral-cli:latest ;;
+        5) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.vibe:/root/.vibe" -e MISTRAL_API_KEY="${MISTRAL_API_KEY}" devstral-cli:latest --agent=auto-approve ;;
         6) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/node/.gemini" -e GEMINI_API_KEY="${GEMINI_API_KEY}" gemini-cli:latest --approval-mode=yolo ;;
         7) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.junie:/home/ubuntu/.junie" -e JUNIE_API_KEY="${JUNIE_API_KEY}" junie-cli:latest --brave ;;
         8) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest ;;
