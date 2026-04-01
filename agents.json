@@ -11,7 +11,7 @@
       "config_dir_host": ".claude",
       "config_path_container": "/home/node/.claude",
       "docs_url": "https://docs.anthropic.com/en/docs/claude-code/overview",
-      "update_hint": "npm install -g @anthropic-ai/claude-code@latest",
+      "update_hint": "curl -fsSL https://claude.ai/install.sh | bash",
       "run": {
         "mounts": [
           {
