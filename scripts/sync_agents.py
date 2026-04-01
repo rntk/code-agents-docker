@@ -102,15 +102,6 @@ def render_run_case(agents):
     return "\n".join(lines)
 
 
-def render_update_case(agents):
-    lines = []
-    for index, agent in enumerate(agents, start=1):
-        lines.append(f'        {index})  IMAGE="{agent["id"]}:latest"')
-        lines.append(f'            HINT="{agent["update_hint"]}" ;;')
-    lines.append('        *)  echo "Invalid selection" ; exit 1 ;;')
-    return "\n".join(lines)
-
-
 def render_build_case(agents):
     lines = []
     for index, agent in enumerate(agents, start=1):
@@ -169,20 +160,6 @@ def sync_agent_sh(agents):
         "# BEGIN GENERATED RUN CASE",
         "# END GENERATED RUN CASE",
         render_run_case(agents),
-        AGENT_SH_PATH,
-    )
-    updated = replace_section(
-        updated,
-        "# BEGIN GENERATED UPDATE MENU",
-        "# END GENERATED UPDATE MENU",
-        render_menu_lines(agents, "    "),
-        AGENT_SH_PATH,
-    )
-    updated = replace_section(
-        updated,
-        "# BEGIN GENERATED UPDATE CASE",
-        "# END GENERATED UPDATE CASE",
-        render_update_case(agents),
         AGENT_SH_PATH,
     )
     updated = replace_section(

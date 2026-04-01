@@ -46,68 +46,6 @@ AGENT_COUNT=12
     esac
 }
 
-update_agent() {
-    echo "Available AI Agents:"
-    # BEGIN GENERATED UPDATE MENU
-    echo "1. claude-code"
-    echo "2. codex-cli"
-    echo "3. copilot-cli"
-    echo "4. codespeak"
-    echo "5. devstral-cli"
-    echo "6. gemini-cli"
-    echo "7. junie-cli"
-    echo "8. kimi-cli"
-    echo "9. kiro-cli"
-    echo "10. qwen-code"
-    echo "11. opencode-cli"
-    echo "12. pi-coding-agent"
-# END GENERATED UPDATE MENU
-
-    read -rp "Select agent to update (1-${AGENT_COUNT}): " choice
-
-    case "$choice" in
-        # BEGIN GENERATED UPDATE CASE
-        1)  IMAGE="claude-code:latest"
-            HINT="npm install -g @anthropic-ai/claude-code@latest" ;;
-        2)  IMAGE="codex-cli:latest"
-            HINT="npm install -g @openai/codex@latest" ;;
-        3)  IMAGE="copilot-cli:latest"
-            HINT="npm install -g @github/copilot@latest" ;;
-        4)  IMAGE="codespeak:latest"
-            HINT="uv tool install --force codespeak-cli" ;;
-        5)  IMAGE="devstral-cli:latest"
-            HINT="uv tool install --force mistral-vibe" ;;
-        6)  IMAGE="gemini-cli:latest"
-            HINT="npm install -g @google/gemini-cli@latest" ;;
-        7)  IMAGE="junie-cli:latest"
-            HINT="curl -fsSL https://junie.jetbrains.com/install.sh | bash" ;;
-        8)  IMAGE="kimi-cli:latest"
-            HINT="uv tool install --force --python 3.13 kimi-cli" ;;
-        9)  IMAGE="kiro-cli:latest"
-            HINT="curl -fsSL https://cli.kiro.dev/install | bash" ;;
-        10)  IMAGE="qwen-code:latest"
-            HINT="npm install -g @qwen-code/qwen-code@latest" ;;
-        11)  IMAGE="opencode-cli:latest"
-            HINT="npm install -g opencode-ai@latest" ;;
-        12)  IMAGE="pi-coding-agent:latest"
-            HINT="npm install -g @mariozechner/pi-coding-agent@latest" ;;
-        *)  echo "Invalid selection" ; exit 1 ;;
-# END GENERATED UPDATE CASE
-    esac
-
-    CONTAINER_NAME="update-${IMAGE%%:*}-$$"
-    echo "Hint: $HINT"
-    execute sudo docker run -it --user root --entrypoint /bin/bash --name "$CONTAINER_NAME" "$IMAGE"
-
-    if sudo docker inspect "$CONTAINER_NAME" > /dev/null 2>&1; then
-        echo "Committing changes to $IMAGE ..."
-        execute sudo docker commit "$CONTAINER_NAME" "$IMAGE"
-        execute sudo docker rm "$CONTAINER_NAME"
-    else
-        echo "Container was not created; nothing to commit."
-    fi
-}
-
 build_agent() {
     echo "Available AI Agents:"
     # BEGIN GENERATED BUILD MENU
@@ -188,13 +126,12 @@ rebuild_all() {
 }
 
 usage() {
-    echo "Usage: $0 <run|build|update|rebuild-all> [args...]"
+    echo "Usage: $0 <run|build|rebuild-all> [args...]"
     echo ""
     echo "Commands:"
     echo "  run         Select and run an agent container (default)"
     echo "  build       Build a single agent Docker image"
     echo "  rebuild-all Rebuild ALL agent Docker images sequentially"
-    echo "  update      Drop into a root shell to update an agent, then commit changes"
     exit 1
 }
 
@@ -202,6 +139,5 @@ case "$1" in
     run|"")       run_agent ;;
     build)        build_agent ;;
     rebuild-all)  rebuild_all ;;
-    update)       update_agent ;;
     *)            usage ;;
 esac

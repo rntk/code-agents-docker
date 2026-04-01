@@ -59,11 +59,6 @@ def run_agent():
     sys.exit(result.returncode)
 
 
-def update_agent():
-    result = execute(f"bash {AGENT_SH} update")
-    sys.exit(result.returncode)
-
-
 def sync_metadata():
     result = execute(f"python3 {ROOT / 'scripts' / 'sync_agents.py'}")
     sys.exit(result.returncode)
@@ -86,7 +81,6 @@ def usage():
     print("  build-all          Build all agent Docker images")
     print("  build <agent>      Build a single agent Docker image")
     print("  run                Select and run an agent container")
-    print("  update             Drop into a root shell to update an agent, then commit")
     print("  sync-metadata      Sync agent.sh and README.md from agents.json")
     print("  generate-prompt    Generate a project-specific Dockerfile prompt")
     print("  clean              Remove dangling Docker images")
@@ -108,8 +102,6 @@ def main():
         build_agent(sys.argv[2])
     elif cmd == "run":
         run_agent()
-    elif cmd == "update":
-        update_agent()
     elif cmd == "sync-metadata":
         sync_metadata()
     elif cmd == "generate-prompt":
