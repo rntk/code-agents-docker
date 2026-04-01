@@ -20,7 +20,7 @@ docker build -t devstral-cli .
 export MISTRAL_API_KEY="YOUR_API_KEY"
 
 # Run the container with volume mounts for working directory and config persistence
-docker run --rm -it -v $(pwd):/app -v $HOME/.vibe:/root/.vibe -e MISTRAL_API_KEY=$MISTRAL_API_KEY devstral-cli
+docker run --rm -it -v $(pwd):/app -v $HOME/.vibe:/root/.vibe -e MISTRAL_API_KEY=$MISTRAL_API_KEY devstral-cli --agent=auto-approve
 ```
 
 ## Configuration

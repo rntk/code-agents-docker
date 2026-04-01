@@ -5,7 +5,7 @@ This directory contains a Docker setup for running [Mario Zechner's Pi Coding Ag
 ## Prerequisites
 
 - Docker installed on your system
-- Required API key or authentication credentials (if applicable)
+- No API key required (authentication handled via config file)
 
 ## Build
 
@@ -22,18 +22,8 @@ docker build --build-arg PI_VERSION=1.0.0 -t pi-coding-agent .
 ## Run
 
 ```bash
-# Basic run with volume mounts
+# Run the container with volume mounts for working directory and config persistence
 docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent
-```
-
-With environment variables (if required):
-
-```bash
-# Set any required API keys as environment variables
-export PI_API_KEY="YOUR_API_KEY"
-
-# Run the container
-docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" -e PI_API_KEY="$PI_API_KEY" pi-coding-agent
 ```
 
 ## Configuration
@@ -41,7 +31,6 @@ docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" -e PI_API_KEY
 - The container runs as a non-root user for security.
 - Mount your current directory to `/app` to work with local files.
 - Config is persisted in `~/.pi` on the host.
-- Pass API keys or credentials via environment variables to avoid storing them in the image.
 
 ## Troubleshooting
 
