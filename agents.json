@@ -23,9 +23,14 @@
             "container": "/home/node/.claude.json"
           }
         ],
-        "env_vars": ["ANTHROPIC_API_KEY"],
+        "env_vars": [
+          "ANTHROPIC_API_KEY"
+        ],
         "docker_args": [],
-        "command_args": ["--verbose", "--dangerously-skip-permissions"]
+        "command_args": [
+          "--verbose",
+          "--dangerously-skip-permissions"
+        ]
       }
     },
     {
@@ -47,9 +52,16 @@
             "container": "/home/node/.codex"
           }
         ],
-        "env_vars": ["OPENAI_API_KEY"],
+        "env_vars": [
+          "OPENAI_API_KEY"
+        ],
         "docker_args": [],
-        "command_args": ["-a", "never", "--sandbox", "danger-full-access"]
+        "command_args": [
+          "-a",
+          "never",
+          "--sandbox",
+          "danger-full-access"
+        ]
       }
     },
     {
@@ -71,9 +83,13 @@
             "container": "/home/node/.copilot"
           }
         ],
-        "env_vars": ["COPILOT_GITHUB_TOKEN"],
+        "env_vars": [
+          "COPILOT_GITHUB_TOKEN"
+        ],
         "docker_args": [],
-        "command_args": ["--allow-all"]
+        "command_args": [
+          "--allow-all"
+        ]
       }
     },
     {
@@ -95,8 +111,13 @@
             "container": "/home/codespeak/.codespeak"
           }
         ],
-        "env_vars": ["ANTHROPIC_API_KEY"],
-        "docker_args": ["--entrypoint", "/bin/bash"],
+        "env_vars": [
+          "ANTHROPIC_API_KEY"
+        ],
+        "docker_args": [
+          "--entrypoint",
+          "/bin/bash"
+        ],
         "command_args": []
       }
     },
@@ -119,9 +140,13 @@
             "container": "/root/.vibe"
           }
         ],
-        "env_vars": ["MISTRAL_API_KEY"],
+        "env_vars": [
+          "MISTRAL_API_KEY"
+        ],
         "docker_args": [],
-        "command_args": ["--agent=auto-approve"]
+        "command_args": [
+          "--agent=auto-approve"
+        ]
       }
     },
     {
@@ -143,9 +168,13 @@
             "container": "/home/node/.gemini"
           }
         ],
-        "env_vars": ["GEMINI_API_KEY"],
+        "env_vars": [
+          "GEMINI_API_KEY"
+        ],
         "docker_args": [],
-        "command_args": ["--approval-mode=yolo"]
+        "command_args": [
+          "--approval-mode=yolo"
+        ]
       }
     },
     {
@@ -167,9 +196,13 @@
             "container": "/home/ubuntu/.junie"
           }
         ],
-        "env_vars": ["JUNIE_API_KEY"],
+        "env_vars": [
+          "JUNIE_API_KEY"
+        ],
         "docker_args": [],
-        "command_args": ["--brave"]
+        "command_args": [
+          "--brave"
+        ]
       }
     },
     {
@@ -221,7 +254,10 @@
         ],
         "env_vars": [],
         "docker_args": [],
-        "command_args": ["chat", "--trust-all-tools"]
+        "command_args": [
+          "chat",
+          "--trust-all-tools"
+        ]
       }
     },
     {
@@ -245,7 +281,9 @@
         ],
         "env_vars": [],
         "docker_args": [],
-        "command_args": ["--yolo"]
+        "command_args": [
+          "--yolo"
+        ]
       }
     },
     {
@@ -294,6 +332,38 @@
         "env_vars": [],
         "docker_args": [],
         "command_args": []
+      }
+    },
+    {
+      "id": "cursor-cli",
+      "display_name": "Cursor CLI",
+      "provider": "Cursor",
+      "base_image": "Ubuntu 24.04",
+      "non_root": true,
+      "image_dir": "agents/cursor-cli",
+      "entrypoint": "agent",
+      "config_dir_host": ".cursor",
+      "config_path_container": "/home/ubuntu/.cursor",
+      "docs_url": "https://cursor.com",
+      "update_hint": "curl https://cursor.com/install -fsS | bash",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.cursor",
+            "container": "/home/ubuntu/.cursor"
+          },
+          {
+            "host": "$HOME/.config/cursor",
+            "container": "/home/ubuntu/.config/cursor"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": [
+          "--sandbox",
+          "disabled",
+          "--yolo"
+        ]
       }
     }
   ]

@@ -19,6 +19,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 | [qwen-code](./agents/qwen-code/) | Qwen Code | Alibaba | Node.js 24 | Yes |
 | [opencode-cli](./agents/opencode-cli/) | OpenCode CLI | OpenCode | Node.js 24 | Yes |
 | [pi-coding-agent](./agents/pi-coding-agent/) | Pi Coding Agent | Mario Zechner | Node.js 24 | Yes |
+| [cursor-cli](./agents/cursor-cli/) | Cursor CLI | Cursor | Ubuntu 24.04 | Yes |
 <!-- END GENERATED INCLUDED CLIS -->
 
 ## Repository Structure
