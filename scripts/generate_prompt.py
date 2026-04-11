@@ -14,10 +14,14 @@ You are a DevOps engineer specializing in containerized development environments
 Generate a project-specific Dockerfile and a companion bash script that gives an AI coding CLI agent everything it needs to work on a given software project.
 
 **Strategy:**
-1. **If the project has its own Dockerfile** — extend it by adding the coding agent (Strategy A - preferred)
-2. **If the project has no Dockerfile** — choose an appropriate base image, install runtimes and tools, then add the coding agent (Strategy B)
+1. **If Dockerfile.code_agent exists** — use it as base image, only add the agent (fast rebuilds)
+2. **If Dockerfile.code_agent doesn't exist** — create it first with project dependencies, then create agent Dockerfile
+3. **If project has its own Dockerfile** — extend it by adding the coding agent (Strategy A - preferred)
+4. **If project has no Dockerfile** — choose an appropriate base image, install runtimes and tools, then add the coding agent (Strategy B)
 
 **The generated Dockerfile must pre-install all project dependencies** so the environment is ready for testing and execution immediately.
+
+**Base Image Optimization:** Creating `Dockerfile.code_agent` as a shared base image allows faster rebuilds — only rebuild the base when project dependencies change, then quickly rebuild any agent by installing just the CLI.
 
 **The generated bash script (`agent.sh`) is a single unified script** that manages all agents. It must be created if missing, or updated to add/modify the entry for the current agent while keeping all other agents intact.
 
@@ -27,9 +31,34 @@ Name of the AI coding CLI: {CLI_AGENT}
 
 ---
 
+### Step 0: Check for Base Image (Dockerfile.code_agent)
+
+**First, check if `Dockerfile.code_agent` already exists in the current project directory.**
+
+- If **it exists**: Note its base image and contents. This will be used as the base for the agent-specific Dockerfile.
+- If **it does NOT exist**: You need to create it first (see below).
+
+#### Dockerfile.code_agent Base Image
+
+`Dockerfile.code_agent` is a shared base image that contains:
+- System packages (git, curl, ripgrep, iputils-ping)
+- Language runtimes (Node.js, Python, Go, etc. - as needed by the project)
+- Project dependencies (installed so they don't need to be rebuilt)
+
+**If creating Dockerfile.code_agent:**
+1. Follow Strategy A or B from Step 3 to determine the base image
+2. Install all project dependencies (COPY manifest files + RUN install)
+3. Set working directory to `/app`
+4. Do NOT set ENTRYPOINT (each agent will set its own)
+5. Name the image: `$(basename $(pwd))-code-agent:latest`
+
+Save as `Dockerfile.code_agent` in the project root.
+
+---
+
 ### Step 1: Reference Information
 
-Below is the **Reference Dockerfile** and **Reference README.md** for the {CLI_AGENT} agent. 
+Below is the **Reference Dockerfile** and **Reference README.md** for the {CLI_AGENT} agent.
 Extract the following from these files:
 - CLI installation method (e.g., `npm install -g @anthropic-ai/claude-code`)
 - Required runtime (Node.js, Python, etc.)
@@ -47,6 +76,8 @@ Extract the following from these files:
 ```markdown
 {README_CONTENT}
 ```
+
+**Base Image Status:** {BASE_IMAGE_STATUS}
 
 ---
 
@@ -130,34 +161,50 @@ RUN case "$TARGETARCH" in \\
 
 ### Step 4: Generate the Dockerfile
 
+**IMPORTANT: Use the Base Image Strategy**
+
+If `Dockerfile.code_agent` exists (or was created in Step 0):
+- The agent Dockerfile should `FROM` the base image
+- Only install the CLI agent and any agent-specific dependencies
+- Skip system packages, language runtimes, and project dependencies (already in base)
+
+**If no base image exists:**
+- Follow the full installation steps below (System packages → Language runtimes → Project dependencies → CLI agent)
+
 **Core Requirements:**
 
-1. **Layer ordering** (least to most frequently changing): System packages → Language runtimes → Project dependencies → CLI agent → Global tools → User setup → Entrypoint
+1. **Base image approach** (if Dockerfile.code_agent exists):
+   ```dockerfile
+   FROM {PROJECT_NAME}-code-agent:latest
+   # Only add CLI agent installation and entrypoint
+   ARG {CLI_AGENT_NAME_UPPER}_VERSION=latest
+   # <INSTALL THE CLI AGENT USING THE METHOD FROM REFERENCE README>
+   ENTRYPOINT ["{CLI_AGENT_NAME_LOWER}"]
+   ```
 
-2. **System packages**: Install early, group `apt-get` commands, clean up: `&& rm -rf /var/lib/apt/lists/*`
+2. **Full approach** (if no base image):
+   - **Layer ordering** (least to most frequently changing): System packages → Language runtimes → Project dependencies → CLI agent → Global tools → User setup → Entrypoint
+   - **System packages**: Install early, group `apt-get` commands, clean up: `&& rm -rf /var/lib/apt/lists/*`
+   - **Project dependencies**: MUST `COPY` manifest files + `RUN` install commands (e.g., `COPY package.json ./ && RUN npm install`)
 
-3. **Project dependencies**: MUST `COPY` manifest files + `RUN` install commands (e.g., `COPY package.json ./ && RUN npm install`)
+3. **Non-root user**: Always create `appuser` (UID 1000) if missing (unless base image already has one)
 
-4. **Global tools**: Install sparingly, only if not project-managed. Version-pin when possible.
+4. **Entrypoint**: Set to CLI agent command (e.g., `ENTRYPOINT ["{CLI_AGENT_NAME_LOWER}"]`)
 
-5. **Non-root user**: Always create `appuser` (UID 1000) if missing
+5. **Source code**: Optional `COPY . .` after dependency install. Agent typically volume-mounts at runtime.
 
-6. **Entrypoint**: Set to CLI agent command (e.g., `ENTRYPOINT ["{CLI_AGENT_NAME_LOWER}"]`)
-
-7. **Source code**: Optional `COPY . .` after dependency install. Agent typically volume-mounts at runtime.
-
-8. **Header comment**: Include generated-for project name, strategy used, base image, and detected tech stack
+6. **Header comment**: Include generated-for project name, strategy used, base image, and detected tech stack
 
 **Output:**
 - Save as `Dockerfile.{CLI_AGENT}` in the current project directory
 - Add brief build/run instructions as comments at the top of the Dockerfile. Include the generated-for project name, strategy used, base image, detected tech stack, required environment variables, and complete run examples from the agent-specific README (e.g., mounting config directories, command-line parameters like `-a never` for codex-cli).
+- If using base image, note this in the header comment
 
 **Must Include:**
-- Strategy choice (A/B) and rationale
+- Base image usage (if applicable)
 - CLI version ARG (default: `latest`)
 - Non-root user, `/app` workdir
 - Cache cleanup after package installs
-- Project dependency installation
 - No `curl | bash` without checksums
 
 ---
@@ -305,13 +352,15 @@ Document required environment variables (set at runtime, not in Dockerfile).
 
 ## Important Reminders
 
-- **Strategy A first**: Always check for a project Dockerfile before falling back to Strategy B
+- **Base image first**: Always check for `Dockerfile.code_agent` before creating agent-specific Dockerfiles
+- **Strategy A first**: Also check for a project Dockerfile before falling back to Strategy B
 - **Pre-install dependencies**: Image should contain all project-level dependencies (via `COPY` + `RUN install`)
 - **Deterministic installs**: Prefer verified binaries with checksums over `curl | bash`
 - **Lean but ready**: Keep image lean, but prioritize readiness over size
 - **Set entrypoint**: Container always starts in agent mode
 - **Single unified script**: `agent.sh` is the project's sole agent runner — do not generate per-agent shell scripts
 - **Non-destructive updates**: When updating `agent.sh`, only touch the `{CLI_AGENT}` entry — all other agents stay unchanged
+- **Fast rebuilds**: Use base image (`Dockerfile.code_agent`) to cache project dependencies — rebuild base only when deps change
 """
 
 def main():
@@ -403,14 +452,28 @@ def main():
     agent_config_dir = agent_metadata["config_dir_host"].removeprefix(".")
     agent_update_hint = agent_metadata["update_hint"]
 
+    # Check for existing base image
+    project_name = os.path.basename(root_dir)
+    base_image_path = os.path.join(root_dir, "Dockerfile.code_agent")
+    if os.path.exists(base_image_path):
+        with open(base_image_path, "r") as f:
+            base_image_content = f.read()
+        base_image_status = f"EXISTS - Image: {project_name}-code-agent:latest\\nBase image will be used for faster builds.\\n\\n#### Contents of Dockerfile.code_agent:\\n```dockerfile\\n{base_image_content}\\n```"
+    else:
+        base_image_content = ""
+        base_image_status = "NOT FOUND - Will need to create Dockerfile.code_agent as base image"
+
     final_prompt = PROMPT_TEMPLATE.format(
         CLI_AGENT=selected_agent,
         DOCKERFILE_CONTENT=dockerfile_content,
         README_CONTENT=readme_content,
         CLI_AGENT_NAME_LOWER=agent_entrypoint,
+        CLI_AGENT_NAME_UPPER=agent_entrypoint.upper(),
         CLI_AGENT_CONFIG_DIR=agent_config_dir,
         CLI_AGENT_UPDATE_HINT=agent_update_hint,
         RUN_AGENT_SCRIPT_CONTENT=run_agent_script_content,
+        BASE_IMAGE_STATUS=base_image_status,
+        PROJECT_NAME=project_name,
     )
 
     print("\n--- GENERATED PROMPT ---\n")
