@@ -132,7 +132,7 @@
       "config_dir_host": ".vibe",
       "config_path_container": "/root/.vibe",
       "docs_url": "https://mistral.ai/",
-      "update_hint": "uv tool install --force mistral-vibe",
+      "update_hint": "curl -LsSf https://mistral.ai/vibe/install.sh | bash",
       "run": {
         "mounts": [
           {

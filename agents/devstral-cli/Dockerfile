@@ -10,14 +10,12 @@ RUN apt-get update && apt-get install -y \
     ripgrep \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN pip install uv
-
 # Set working directory
 WORKDIR /app
 
 # Install mistral-vibe
-RUN uv tool install mistral-vibe
+ENV PATH="/root/.local/bin:$PATH"
+RUN curl -LsSf https://mistral.ai/vibe/install.sh | bash
 
 # The container is intended to be run with a mounted volume at /app
 # Example: docker run -v $(pwd):/app -v ~/.vibe:/root/.vibe -e MISTRAL_API_KEY=your_key my-mistral-vibe-image
