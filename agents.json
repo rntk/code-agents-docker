@@ -4,23 +4,23 @@
       "id": "claude-code",
       "display_name": "Claude Code",
       "provider": "Anthropic",
-      "base_image": "Node.js 24",
+      "base_image": "Ubuntu 24.04",
       "non_root": true,
       "image_dir": "agents/claude-code",
       "entrypoint": "claude",
       "config_dir_host": ".claude",
-      "config_path_container": "/home/node/.claude",
+      "config_path_container": "/home/ubuntu/.claude",
       "docs_url": "https://docs.anthropic.com/en/docs/claude-code/overview",
       "update_hint": "curl -fsSL https://claude.ai/install.sh | bash",
       "run": {
         "mounts": [
           {
             "host": "$HOME/.claude",
-            "container": "/home/node/.claude"
+            "container": "/home/ubuntu/.claude"
           },
           {
             "host": "$HOME/.claude/.claude.json",
-            "container": "/home/node/.claude.json"
+            "container": "/home/ubuntu/.claude.json"
           }
         ],
         "env_vars": [

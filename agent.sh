@@ -30,7 +30,7 @@ AGENT_COUNT=13
 
     case "$choice" in
         # BEGIN GENERATED RUN CASE
-        1) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.claude:/home/node/.claude" -v "$HOME/.claude/.claude.json:/home/node/.claude.json" -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" claude-code:latest --verbose --dangerously-skip-permissions ;;
+        1) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.claude:/home/ubuntu/.claude" -v "$HOME/.claude/.claude.json:/home/ubuntu/.claude.json" -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" claude-code:latest --verbose --dangerously-skip-permissions ;;
         2) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.codex:/home/node/.codex" -e OPENAI_API_KEY="${OPENAI_API_KEY}" codex-cli:latest -a never --sandbox danger-full-access ;;
         3) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.copilot:/home/node/.copilot" -e COPILOT_GITHUB_TOKEN="${COPILOT_GITHUB_TOKEN}" copilot-cli:latest --allow-all ;;
         4) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.codespeak:/home/codespeak/.codespeak" -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" --entrypoint /bin/bash codespeak:latest ;;

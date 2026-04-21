@@ -7,7 +7,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 <!-- BEGIN GENERATED INCLUDED CLIS -->
 | Directory | CLI | Provider | Base Image | Non-Root |
 |-----------|-----|----------|------------|-----------|
-| [claude-code](./agents/claude-code/) | Claude Code | Anthropic | Node.js 24 | Yes |
+| [claude-code](./agents/claude-code/) | Claude Code | Anthropic | Ubuntu 24.04 | Yes |
 | [codex-cli](./agents/codex-cli/) | Codex CLI | OpenAI | Node.js 24 | Yes |
 | [copilot-cli](./agents/copilot-cli/) | Copilot CLI | GitHub | Node.js 24 | Yes |
 | [codespeak](./agents/codespeak/) | CodeSpeak | Anthropic | Python 3.13 | Yes |
