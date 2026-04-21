@@ -215,8 +215,8 @@
       "entrypoint": "kimi",
       "config_dir_host": ".kimi",
       "config_path_container": "/home/appuser/.kimi",
-      "docs_url": "https://www.kimi.com/code/docs/en/kimi-cli.html",
-      "update_hint": "uv tool install --force --python 3.13 kimi-cli",
+      "docs_url": "https://www.kimi.com/code/docs/en/kimi-cli/guides/getting-started.html",
+      "update_hint": "uv tool upgrade kimi-cli --no-cache",
       "run": {
         "mounts": [
           {
@@ -226,7 +226,7 @@
         ],
         "env_vars": [],
         "docker_args": [],
-        "command_args": []
+        "command_args": ["--yolo"]
       }
     },
     {

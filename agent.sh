@@ -37,7 +37,7 @@ AGENT_COUNT=13
         5) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.vibe:/root/.vibe" -e MISTRAL_API_KEY="${MISTRAL_API_KEY}" devstral-cli:latest --agent=auto-approve ;;
         6) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/node/.gemini" -e GEMINI_API_KEY="${GEMINI_API_KEY}" gemini-cli:latest --approval-mode=yolo ;;
         7) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.junie:/home/ubuntu/.junie" -e JUNIE_API_KEY="${JUNIE_API_KEY}" junie-cli:latest --brave ;;
-        8) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest ;;
+        8) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest --yolo ;;
         9) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kiro:/home/ubuntu/.kiro" -v "$HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli" kiro-cli:latest chat --trust-all-tools ;;
         10) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.qwen:/home/node/.qwen" qwen-code:latest --yolo ;;
         11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" opencode-cli:latest ;;
