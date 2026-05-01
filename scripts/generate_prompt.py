@@ -251,45 +251,18 @@ build_agent() {{
     esac
 }}
 
-update_agent() {{
-    echo "Available AI Agents:"
-    echo "1. <agent-1>"
-    # ... one line per agent ...
-    read -rp "Select agent to update (1-N): " choice
-    case "$choice" in
-        1)  IMAGE="<agent-1>:latest"
-            HINT="{CLI_AGENT_UPDATE_HINT}" ;;
-        # ... one branch per agent, each setting IMAGE and HINT ...
-        *)  echo "Invalid selection" ; exit 1 ;;
-    esac
-
-    CONTAINER_NAME="update-${{IMAGE%%:*}}-$$"
-    echo "Hint: $HINT"
-    sudo docker run -it --user root --entrypoint /bin/bash --name "$CONTAINER_NAME" "$IMAGE"
-
-    if sudo docker inspect "$CONTAINER_NAME" > /dev/null 2>&1; then
-        echo "Committing changes to $IMAGE ..."
-        sudo docker commit "$CONTAINER_NAME" "$IMAGE"
-        sudo docker rm "$CONTAINER_NAME"
-    else
-        echo "Container was not created; nothing to commit."
-    fi
-}}
-
 usage() {{
-    echo "Usage: $0 <run|build|update> [args...]"
+    echo "Usage: $0 <run|build> [args...]"
     echo ""
     echo "Commands:"
     echo "  run    Select and run an agent container (default)"
     echo "  build  Build an agent Docker image"
-    echo "  update Drop into a root shell to update an agent, then commit changes"
     exit 1
 }}
 
 case "$1" in
     run|"")  run_agent ;;
     build)   build_agent ;;
-    update)  update_agent ;;
     *)       usage ;;
 esac
 ```
@@ -307,7 +280,6 @@ esac
      - If present: replace only that `docker run` line.
      - If absent: append `echo "N+1. {CLI_AGENT}"` to the menu and add a new `case` branch.
    - In `build_agent`: same — add or update `{CLI_AGENT}`'s `docker build` line.
-   - In `update_agent`: add or update the `case` branch for `{CLI_AGENT}`, setting `IMAGE` to its image tag and `HINT` to `{CLI_AGENT_UPDATE_HINT}`. Keep all other branches unchanged.
    - **Leave all other agent entries completely unchanged.**
 
 #### If `agent.sh` does not exist:
@@ -450,7 +422,6 @@ def main():
     agent_metadata = agent_metadata_map[selected_agent]
     agent_entrypoint = agent_metadata["entrypoint"]
     agent_config_dir = agent_metadata["config_dir_host"].removeprefix(".")
-    agent_update_hint = agent_metadata["update_hint"]
 
     # Check for existing base image
     project_name = os.path.basename(root_dir)
@@ -470,7 +441,6 @@ def main():
         CLI_AGENT_NAME_LOWER=agent_entrypoint,
         CLI_AGENT_NAME_UPPER=agent_entrypoint.upper(),
         CLI_AGENT_CONFIG_DIR=agent_config_dir,
-        CLI_AGENT_UPDATE_HINT=agent_update_hint,
         RUN_AGENT_SCRIPT_CONTENT=run_agent_script_content,
         BASE_IMAGE_STATUS=base_image_status,
         PROJECT_NAME=project_name,
