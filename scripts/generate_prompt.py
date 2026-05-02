@@ -251,35 +251,58 @@ build_agent() {{
     esac
 }}
 
+rebuild_all() {{
+    echo "Rebuilding all agent images..."
+    local failed=()
+    local succeeded=()
+
+    # ... for each agent ...
+    echo "[N/TOTAL] <agent-N>"
+    docker build --no-cache -f Dockerfile.<agent-N> -t "$(basename $(pwd))-<agent-N>:latest" . && succeeded+=("<agent-N>") || failed+=("<agent-N>")
+
+    echo ""
+    echo -e "\\033[1;32m[DONE]\\033[0m Rebuild complete."
+    echo "  Succeeded (${{#succeeded[@]}}): ${{succeeded[*]:-none}}"
+    if [ ${{#failed[@]}} -gt 0 ]; then
+        echo -e "  \\033[1;31mFailed    (${{#failed[@]}}): ${{failed[*]}}\\033[0m"
+        exit 1
+    fi
+}}
+
 usage() {{
-    echo "Usage: $0 <run|build> [args...]"
+    echo "Usage: $0 <run|build|rebuild-all> [args...]"
     echo ""
     echo "Commands:"
-    echo "  run    Select and run an agent container (default)"
-    echo "  build  Build an agent Docker image"
+    echo "  run         Select and run an agent container (default)"
+    echo "  build       Build a single agent Docker image"
+    echo "  rebuild-all Rebuild ALL agent Docker images sequentially"
     exit 1
 }}
 
 case "$1" in
-    run|"")  run_agent ;;
-    build)   build_agent ;;
-    *)       usage ;;
+    run|"")       run_agent ;;
+    build)        build_agent ;;
+    rebuild-all)  rebuild_all ;;
+    *)            usage ;;
 esac
 ```
 
 #### If `agent.sh` already exists:
 
-1. **Detect structure**: Check whether the file already has the `run_agent()`/`build_agent()` function layout above.
-   - If it only has a flat `case "$choice" in` with no subcommand dispatch (like the reference above), **refactor** it: wrap the existing run logic inside a `run_agent()` function, add a `build_agent()` function, add `usage()`, and add the top-level `case "$1" in` dispatch. Preserve all existing `docker run` lines verbatim, but update any hardcoded global image tags (e.g., `<agent>:latest`) to the project-specific form `"$(basename $(pwd))-<agent>:latest"`.
+1. **Detect structure**: Check whether the file already has the `run_agent()`/`build_agent()`/`rebuild_all()` function layout above.
+   - If it only has a flat `case "$choice" in` with no subcommand dispatch (like the reference above), **refactor** it: wrap the existing run logic inside a `run_agent()` function, add a `build_agent()` function, add a `rebuild_all()` function, add `usage()`, and add the top-level `case "$1" in` dispatch. Preserve all existing `docker run` lines verbatim, but update any hardcoded global image tags (e.g., `<agent>:latest`) to the project-specific form `"$(basename $(pwd))-<agent>:latest"`.
    - If it already has the target structure, proceed directly to adding/updating entries.
 
-2. **Determine the entry number**: Count existing `echo "N. <agent>"` lines inside `run_agent` to find the highest N. The new entry uses N+1 as its number. Apply the same number consistently in the `echo` menu line, the `read -rp` range hint, and the `case` branch — in both `run_agent` and `build_agent`.
+2. **Determine the entry number**: Count existing `echo "N. <agent>"` lines inside `run_agent` to find the highest N. The new entry uses N+1 as its number. Apply the same number consistently in the `echo` menu line, the `read -rp` range hint, and the `case` branch — in `run_agent`, `build_agent`, and `rebuild_all`.
 
 3. **Add or update `{CLI_AGENT}`**:
    - In `run_agent`: check if `{CLI_AGENT}` already has a `case` branch.
      - If present: replace only that `docker run` line.
      - If absent: append `echo "N+1. {CLI_AGENT}"` to the menu and add a new `case` branch.
    - In `build_agent`: same — add or update `{CLI_AGENT}`'s `docker build` line.
+   - In `rebuild_all`: check if `{CLI_AGENT}` already has a `docker build` line.
+     - If present: replace only that `docker build` line.
+     - If absent: add a new `echo` and `docker build` line for the agent.
    - **Leave all other agent entries completely unchanged.**
 
 #### If `agent.sh` does not exist:
