@@ -359,8 +359,12 @@ Document required environment variables (set at runtime, not in Dockerfile).
 """
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate a prompt for a coding agent Dockerfile.")
-    parser.add_argument("-o", "--out", default="prompt.md", help="Output file path (default: prompt.md)")
+    parser = argparse.ArgumentParser(description="Generate prompts for coding agent Dockerfiles.")
+    parser.add_argument(
+        "--dir",
+        default="code_agent_docker_prompts",
+        help="Output directory for generated prompts (default: code_agent_docker_prompts)",
+    )
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -402,7 +406,7 @@ def main():
             sys.exit(1)
 
     agents = sorted([d for d in os.listdir(agents_dir) if os.path.isdir(os.path.join(agents_dir, d))])
-    
+
     if not agents:
         print(f"Error: No agents found in '{agents_dir}'.")
         sys.exit(1)
@@ -413,38 +417,7 @@ def main():
         print("Please add the missing entries to agents.json.")
         sys.exit(1)
 
-    print("Available agents:")
-    for i, agent in enumerate(agents):
-        print(f"{i}: {agent}")
-
-    try:
-        choice_str = input(f"Choose an agent (0-{len(agents)-1}): ")
-        choice = int(choice_str)
-        if choice < 0 or choice >= len(agents):
-            raise ValueError
-    except (ValueError, EOFError):
-        print("\nInvalid choice.")
-        sys.exit(1)
-
-    selected_agent = agents[choice]
-    agent_path = os.path.join(agents_dir, selected_agent)
-    
-    dockerfile_path = os.path.join(agent_path, "Dockerfile")
-    readme_path = os.path.join(agent_path, "README.md")
-
-    dockerfile_content = "Dockerfile not found."
-    if os.path.exists(dockerfile_path):
-        with open(dockerfile_path, "r") as f:
-            dockerfile_content = f.read()
-
-    readme_content = "README.md not found."
-    if os.path.exists(readme_path):
-        with open(readme_path, "r") as f:
-            readme_content = f.read()
-
-    agent_metadata = agent_metadata_map[selected_agent]
-    agent_entrypoint = agent_metadata["entrypoint"]
-    agent_config_dir = agent_metadata["config_dir_host"].removeprefix(".")
+    os.makedirs(args.dir, exist_ok=True)
 
     # Check for existing base image
     project_name = os.path.basename(root_dir)
@@ -457,25 +430,44 @@ def main():
         base_image_content = ""
         base_image_status = "NOT FOUND - Will need to create Dockerfile.code_agent as base image"
 
-    final_prompt = PROMPT_TEMPLATE.format(
-        CLI_AGENT=selected_agent,
-        DOCKERFILE_CONTENT=dockerfile_content,
-        README_CONTENT=readme_content,
-        CLI_AGENT_NAME_LOWER=agent_entrypoint,
-        CLI_AGENT_NAME_UPPER=agent_entrypoint.upper(),
-        CLI_AGENT_CONFIG_DIR=agent_config_dir,
-        RUN_AGENT_SCRIPT_CONTENT=run_agent_script_content,
-        BASE_IMAGE_STATUS=base_image_status,
-        PROJECT_NAME=project_name,
-    )
+    for selected_agent in agents:
+        agent_path = os.path.join(agents_dir, selected_agent)
 
-    print("\n--- GENERATED PROMPT ---\n")
-    print(final_prompt)
-    print("\n--- END OF PROMPT ---")
+        dockerfile_path = os.path.join(agent_path, "Dockerfile")
+        readme_path = os.path.join(agent_path, "README.md")
 
-    with open(args.out, "w") as f:
-        f.write(final_prompt)
-    print(f"\nPrompt saved to: {args.out}")
+        dockerfile_content = "Dockerfile not found."
+        if os.path.exists(dockerfile_path):
+            with open(dockerfile_path, "r") as f:
+                dockerfile_content = f.read()
+
+        readme_content = "README.md not found."
+        if os.path.exists(readme_path):
+            with open(readme_path, "r") as f:
+                readme_content = f.read()
+
+        agent_metadata = agent_metadata_map[selected_agent]
+        agent_entrypoint = agent_metadata["entrypoint"]
+        agent_config_dir = agent_metadata["config_dir_host"].removeprefix(".")
+
+        final_prompt = PROMPT_TEMPLATE.format(
+            CLI_AGENT=selected_agent,
+            DOCKERFILE_CONTENT=dockerfile_content,
+            README_CONTENT=readme_content,
+            CLI_AGENT_NAME_LOWER=agent_entrypoint,
+            CLI_AGENT_NAME_UPPER=agent_entrypoint.upper(),
+            CLI_AGENT_CONFIG_DIR=agent_config_dir,
+            RUN_AGENT_SCRIPT_CONTENT=run_agent_script_content,
+            BASE_IMAGE_STATUS=base_image_status,
+            PROJECT_NAME=project_name,
+        )
+
+        out_path = os.path.join(args.dir, f"{selected_agent}.md")
+        with open(out_path, "w") as f:
+            f.write(final_prompt)
+        print(f"Generated: {out_path}")
+
+    print(f"\nAll prompts saved to: {args.dir}")
 
 if __name__ == "__main__":
     main()

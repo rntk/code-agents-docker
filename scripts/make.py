@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -64,8 +65,11 @@ def sync_metadata():
     sys.exit(result.returncode)
 
 
-def generate_prompt():
-    result = execute(f"python3 {ROOT / 'scripts' / 'generate_prompt.py'}")
+def generate_prompt(extra_args):
+    cmd = f"python3 {ROOT / 'scripts' / 'generate_prompt.py'}"
+    if extra_args:
+        cmd += " " + " ".join(shlex.quote(arg) for arg in extra_args)
+    result = execute(cmd)
     sys.exit(result.returncode)
 
 
@@ -82,7 +86,7 @@ def usage():
     print("  build <agent>      Build a single agent Docker image")
     print("  run                Select and run an agent container")
     print("  sync-metadata      Sync agent.sh and README.md from agents.json")
-    print("  generate-prompt    Generate a project-specific Dockerfile prompt")
+    print("  generate-prompt [args]  Generate project-specific Dockerfile prompts")
     print("  clean              Remove dangling Docker images")
     sys.exit(1)
 
@@ -105,7 +109,7 @@ def main():
     elif cmd == "sync-metadata":
         sync_metadata()
     elif cmd == "generate-prompt":
-        generate_prompt()
+        generate_prompt(sys.argv[2:])
     elif cmd == "clean":
         clean()
     else:
