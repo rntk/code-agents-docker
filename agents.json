@@ -226,7 +226,9 @@
         ],
         "env_vars": [],
         "docker_args": [],
-        "command_args": ["--yolo"]
+        "command_args": [
+          "--yolo"
+        ]
       }
     },
     {
@@ -363,6 +365,32 @@
           "--sandbox",
           "disabled",
           "--yolo"
+        ]
+      }
+    },
+    {
+      "id": "antigravity-cli",
+      "display_name": "Antigravity CLI",
+      "provider": "Google",
+      "base_image": "Ubuntu 24.04",
+      "non_root": true,
+      "image_dir": "agents/antigravity-cli",
+      "entrypoint": "antigravity",
+      "config_dir_host": ".antigravity",
+      "config_path_container": "/home/ubuntu/.antigravity",
+      "docs_url": "https://antigravity.google",
+      "update_hint": "curl -fsSL https://antigravity.google/cli/install.sh | bash",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.gemini",
+            "container": "/home/ubuntu/.gemini"
+          }
+        ],
+        "env_vars": [],
+        "docker_args": [],
+        "command_args": [
+          "--dangerously-skip-permissions"
         ]
       }
     }

@@ -21,9 +21,10 @@ run_agent() {
     echo "11. opencode-cli"
     echo "12. pi-coding-agent"
     echo "13. cursor-cli"
+    echo "14. antigravity-cli"
 # END GENERATED RUN MENU
     # BEGIN GENERATED AGENT COUNT
-AGENT_COUNT=13
+AGENT_COUNT=14
 # END GENERATED AGENT COUNT
 
     read -rp "Select agent (1-${AGENT_COUNT}): " choice
@@ -43,6 +44,7 @@ AGENT_COUNT=13
         11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" opencode-cli:latest ;;
         12) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
         13) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.cursor:/home/ubuntu/.cursor" -v "$HOME/.config/cursor:/home/ubuntu/.config/cursor" cursor-cli:latest --sandbox disabled --yolo ;;
+        14) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/ubuntu/.gemini" antigravity-cli:latest --dangerously-skip-permissions ;;
         *) echo "Invalid selection" ; exit 1 ;;
 # END GENERATED RUN CASE
     esac
@@ -64,6 +66,7 @@ build_agent() {
     echo "11. opencode-cli"
     echo "12. pi-coding-agent"
     echo "13. cursor-cli"
+    echo "14. antigravity-cli"
 # END GENERATED BUILD MENU
 
     read -rp "Select agent to build (1-${AGENT_COUNT}): " choice
@@ -83,6 +86,7 @@ build_agent() {
         11) execute docker build --no-cache -t opencode-cli:latest agents/opencode-cli ;;
         12) execute docker build --no-cache -t pi-coding-agent:latest agents/pi-coding-agent ;;
         13) execute docker build --no-cache -t cursor-cli:latest agents/cursor-cli ;;
+        14) execute docker build --no-cache -t antigravity-cli:latest agents/antigravity-cli ;;
         *) echo "Unknown agent" ; exit 1 ;;
 # END GENERATED BUILD CASE
     esac
@@ -94,32 +98,34 @@ rebuild_all() {
     local succeeded=()
 
     # BEGIN GENERATED REBUILD ALL CASE
-    echo "[1/13] claude-code"
+    echo "[1/14] claude-code"
     execute docker build --no-cache -t claude-code:latest agents/claude-code && succeeded+=("claude-code") || failed+=("claude-code")
-    echo "[2/13] codex-cli"
+    echo "[2/14] codex-cli"
     execute docker build --no-cache -t codex-cli:latest agents/codex-cli && succeeded+=("codex-cli") || failed+=("codex-cli")
-    echo "[3/13] copilot-cli"
+    echo "[3/14] copilot-cli"
     execute docker build --no-cache -t copilot-cli:latest agents/copilot-cli && succeeded+=("copilot-cli") || failed+=("copilot-cli")
-    echo "[4/13] codespeak"
+    echo "[4/14] codespeak"
     execute docker build --no-cache -t codespeak:latest agents/codespeak && succeeded+=("codespeak") || failed+=("codespeak")
-    echo "[5/13] devstral-cli"
+    echo "[5/14] devstral-cli"
     execute docker build --no-cache -t devstral-cli:latest agents/devstral-cli && succeeded+=("devstral-cli") || failed+=("devstral-cli")
-    echo "[6/13] gemini-cli"
+    echo "[6/14] gemini-cli"
     execute docker build --no-cache -t gemini-cli:latest agents/gemini-cli && succeeded+=("gemini-cli") || failed+=("gemini-cli")
-    echo "[7/13] junie-cli"
+    echo "[7/14] junie-cli"
     execute docker build --no-cache -t junie-cli:latest agents/junie-cli && succeeded+=("junie-cli") || failed+=("junie-cli")
-    echo "[8/13] kimi-cli"
+    echo "[8/14] kimi-cli"
     execute docker build --no-cache -t kimi-cli:latest agents/kimi-cli && succeeded+=("kimi-cli") || failed+=("kimi-cli")
-    echo "[9/13] kiro-cli"
+    echo "[9/14] kiro-cli"
     execute docker build --no-cache -t kiro-cli:latest agents/kiro-cli && succeeded+=("kiro-cli") || failed+=("kiro-cli")
-    echo "[10/13] qwen-code"
+    echo "[10/14] qwen-code"
     execute docker build --no-cache -t qwen-code:latest agents/qwen-code && succeeded+=("qwen-code") || failed+=("qwen-code")
-    echo "[11/13] opencode-cli"
+    echo "[11/14] opencode-cli"
     execute docker build --no-cache -t opencode-cli:latest agents/opencode-cli && succeeded+=("opencode-cli") || failed+=("opencode-cli")
-    echo "[12/13] pi-coding-agent"
+    echo "[12/14] pi-coding-agent"
     execute docker build --no-cache -t pi-coding-agent:latest agents/pi-coding-agent && succeeded+=("pi-coding-agent") || failed+=("pi-coding-agent")
-    echo "[13/13] cursor-cli"
+    echo "[13/14] cursor-cli"
     execute docker build --no-cache -t cursor-cli:latest agents/cursor-cli && succeeded+=("cursor-cli") || failed+=("cursor-cli")
+    echo "[14/14] antigravity-cli"
+    execute docker build --no-cache -t antigravity-cli:latest agents/antigravity-cli && succeeded+=("antigravity-cli") || failed+=("antigravity-cli")
 # END GENERATED REBUILD ALL CASE
 
     echo ""
