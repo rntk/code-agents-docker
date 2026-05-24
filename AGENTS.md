@@ -10,7 +10,7 @@ AI Coding CLI Containers — Dockerized environments for 12 AI-powered coding CL
 /app
 ├── agents/<name>/        # Per-agent: Dockerfile + README.md (exactly 2 files each)
 ├── agents.json           # Single source of truth for all agent metadata
-├── agent.sh              # Interactive menu script (run/build/update agents)
+├── agent.sh              # Interactive menu script (run/build agents)
 ├── scripts/
 │   ├── make.py           # Build/sync/clean CLI (replaces Makefile)
 │   ├── sync_agents.py    # Syncs agents.json → agent.sh and README.md
@@ -30,9 +30,6 @@ python3 scripts/make.py build claude-code   # builds agents/claude-code/Dockerfi
 
 # Run an agent interactively (interactive menu)
 ./agent.sh run                              # or: python3 scripts/make.py run
-
-# Update an agent's CLI in-place (root shell → commit)
-./agent.sh update
 
 # Sync generated sections in agent.sh and README.md from agents.json
 python3 scripts/make.py sync-metadata       # runs: python3 scripts/sync_agents.py
@@ -70,14 +67,13 @@ There is no test suite. Validation is done by `sync_agents.py` which checks agen
 ### Bash (`agent.sh`)
 
 - **Shebang**: `#!/bin/bash`
-- **Functions**: `name() { ... }` style (no `function` keyword). Use `run_agent`, `build_agent`, `update_agent`, `usage`.
+- **Functions**: `name() { ... }` style (no `function` keyword). Use `run_agent`, `build_agent`, `usage`.
 - **Dispatch**: Top-level `case "$1" in` dispatches to functions.
 - **Generated sections**: Wrapped in `# BEGIN/END GENERATED <SECTION>` markers — never edit manually, always use `sync_agents.py`.
 - **Variable quoting**: Always double-quote variables (`"$choice"`, `"$IMAGE"`). Use `"$(pwd)"` for command substitution.
 - **User prompts**: `read -rp "prompt text: " variable`
 - **Docker commands**: Wrapped in `execute` helper that logs the command before running it.
 - **Color output**: Use ANSI escapes in `execute()` (e.g., `\033[1;34m`).
-- **Container naming**: Use `"update-${IMAGE%%:*}-$$"` pattern for unique container names.
 - **Case branches**: Each agent gets its own numbered case branch; invalid selections exit 1.
 
 ### Dockerfiles (`agents/<name>/Dockerfile`)
@@ -122,13 +118,11 @@ Dockerfile checklist for new agents:
 - `README.md`: `<!-- BEGIN/END GENERATED INCLUDED CLIS -->` — markdown table of all agents
 - `agent.sh`: `# BEGIN/END GENERATED RUN MENU` — numbered agent list for run command
 - `agent.sh`: `# BEGIN/END GENERATED RUN CASE` — `docker run` invocations per agent
-- `agent.sh`: `# BEGIN/END GENERATED UPDATE MENU` — numbered list for update command
-- `agent.sh`: `# BEGIN/END GENERATED UPDATE CASE` — `IMAGE` and `HINT` variables per agent
 - `agent.sh`: `# BEGIN/END GENERATED BUILD MENU` — numbered list for build command
 - `agent.sh`: `# BEGIN/END GENERATED BUILD CASE` — `docker build` commands per agent
 - `agent.sh`: `# BEGIN/END GENERATED AGENT COUNT` — total agent count variable
 
-Only edit the manual boilerplate in `agent.sh`: the `execute()` helper, the `usage()` function, the top-level `case "$1" in` dispatch, and `update_agent()` logic (container name, commit steps).
+Only edit the manual boilerplate in `agent.sh`: the `execute()` helper, the `usage()` function, and the top-level `case "$1" in` dispatch.
 
 ## Key Conventions
 
