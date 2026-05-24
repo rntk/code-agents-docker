@@ -150,34 +150,6 @@
       }
     },
     {
-      "id": "gemini-cli",
-      "display_name": "Gemini CLI",
-      "provider": "Google",
-      "base_image": "Node.js 24",
-      "non_root": true,
-      "image_dir": "agents/gemini-cli",
-      "entrypoint": "gemini",
-      "config_dir_host": ".gemini",
-      "config_path_container": "/home/node/.gemini",
-      "docs_url": "https://github.com/google-gemini/gemini-cli",
-      "update_hint": "npm install -g @google/gemini-cli@latest",
-      "run": {
-        "mounts": [
-          {
-            "host": "$HOME/.gemini",
-            "container": "/home/node/.gemini"
-          }
-        ],
-        "env_vars": [
-          "GEMINI_API_KEY"
-        ],
-        "docker_args": [],
-        "command_args": [
-          "--approval-mode=yolo"
-        ]
-      }
-    },
-    {
       "id": "junie-cli",
       "display_name": "Junie CLI",
       "provider": "JetBrains",
