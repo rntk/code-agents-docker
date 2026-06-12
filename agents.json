@@ -357,6 +357,14 @@
           {
             "host": "$HOME/.gemini",
             "container": "/home/ubuntu/.gemini"
+          },
+          {
+            "host": "$HOME/.config/Antigravity",
+            "container": "/home/ubuntu/.config/Antigravity"
+          },
+          {
+            "host": "$HOME/.config/Antigravity IDE",
+            "container": "/home/ubuntu/.config/Antigravity IDE"
           }
         ],
         "env_vars": [],

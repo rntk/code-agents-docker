@@ -43,7 +43,7 @@ run_agent() {
         10) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" opencode-cli:latest ;;
         11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
         12) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.cursor:/home/ubuntu/.cursor" -v "$HOME/.config/cursor:/home/ubuntu/.config/cursor" cursor-cli:latest --sandbox disabled --yolo ;;
-        13) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/ubuntu/.gemini" antigravity-cli:latest --dangerously-skip-permissions ;;
+        13) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/ubuntu/.gemini" -v "$HOME/.config/Antigravity:/home/ubuntu/.config/Antigravity" -v "$HOME/.config/Antigravity IDE:/home/ubuntu/.config/Antigravity IDE" antigravity-cli:latest --dangerously-skip-permissions ;;
         *) echo "Invalid selection" ; exit 1 ;;
 # END GENERATED RUN CASE
     esac
