@@ -377,6 +377,36 @@
           "--dangerously-skip-permissions"
         ]
       }
+    },
+    {
+      "id": "grok-build-cli",
+      "display_name": "Grok CLI",
+      "provider": "xAI",
+      "base_image": "Ubuntu 24.04",
+      "non_root": true,
+      "image_dir": "agents/grok-build-cli",
+      "entrypoint": "grok",
+      "config_dir_host": ".grok",
+      "config_path_container": "/home/ubuntu/.grok",
+      "docs_url": "https://x.ai/cli",
+      "update_hint": "curl -fsSL https://x.ai/cli/install.sh | bash",
+      "run": {
+        "mounts": [
+          {
+            "host": "$HOME/.grok",
+            "container": "/home/ubuntu/.grok"
+          },
+          {
+            "host": "$HOME/.agents",
+            "container": "/home/ubuntu/.agents"
+          }
+        ],
+        "env_vars": [
+          "XAI_API_KEY"
+        ],
+        "docker_args": [],
+        "command_args": []
+      }
     }
   ]
 }

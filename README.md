@@ -20,6 +20,7 @@ This repository contains Dockerized setups for various AI-powered coding CLI too
 | [pi-coding-agent](./agents/pi-coding-agent/) | Pi Coding Agent | Mario Zechner | Node.js 24 | Yes |
 | [cursor-cli](./agents/cursor-cli/) | Cursor CLI | Cursor | Ubuntu 24.04 | Yes |
 | [antigravity-cli](./agents/antigravity-cli/) | Antigravity CLI | Google | Ubuntu 24.04 | Yes |
+| [grok-build-cli](./agents/grok-build-cli/) | Grok CLI | xAI | Ubuntu 24.04 | Yes |
 <!-- END GENERATED INCLUDED CLIS -->
 
 ## Repository Structure
