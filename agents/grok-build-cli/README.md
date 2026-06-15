@@ -42,12 +42,11 @@ docker run --rm -it \
 | Variable | Description |
 |----------|-------------|
 | `XAI_API_KEY` | **Recommended.** API key for Grok authentication in non-browser environments. |
-| `GROK_DEPLOYMENT_KEY` | **Optional.** Deployment key for enterprise deployment config fetching. |
 | `GROK_CHANNEL` | Release channel (`stable`, `alpha`, `enterprise`; default: `stable`). |
 | `GROK_PROXY_URL` | Custom proxy URL for deployment config fetching. |
 
 ## Troubleshooting
 
-- **Authentication issues**: Ensure `XAI_API_KEY` or `GROK_DEPLOYMENT_KEY` is set, or `~/.grok/auth.json` is mounted correctly.
+- **Authentication issues**: Ensure `XAI_API_KEY` is set, or `~/.grok/auth.json` is mounted correctly.
 - **Permission errors**: Check that the host's `~/.grok` and `~/.agents` directories are writable.
 - **Build failures**: Verify Docker access and network connectivity for the install script.
