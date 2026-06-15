@@ -405,7 +405,9 @@
           "XAI_API_KEY"
         ],
         "docker_args": [],
-        "command_args": []
+        "command_args": [
+          "--always-approve"
+        ]
       }
     }
   ]

@@ -45,7 +45,7 @@ run_agent() {
         11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
         12) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.cursor:/home/ubuntu/.cursor" -v "$HOME/.config/cursor:/home/ubuntu/.config/cursor" cursor-cli:latest --sandbox disabled --yolo ;;
         13) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/ubuntu/.gemini" -v "$HOME/.config/Antigravity:/home/ubuntu/.config/Antigravity" -v "$HOME/.config/Antigravity IDE:/home/ubuntu/.config/Antigravity IDE" antigravity-cli:latest --dangerously-skip-permissions ;;
-        14) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.grok:/home/ubuntu/.grok" -v "$HOME/.agents:/home/ubuntu/.agents" -e XAI_API_KEY="${XAI_API_KEY}" grok-build-cli:latest ;;
+        14) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.grok:/home/ubuntu/.grok" -v "$HOME/.agents:/home/ubuntu/.agents" -e XAI_API_KEY="${XAI_API_KEY}" grok-build-cli:latest --always-approve ;;
         *) echo "Invalid selection" ; exit 1 ;;
 # END GENERATED RUN CASE
     esac
