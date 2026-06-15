@@ -277,6 +277,10 @@
           {
             "host": "$HOME/.opencode",
             "container": "/home/node/.opencode"
+          },
+          {
+            "host": "$HOME/.config/opencode",
+            "container": "/home/node/.config/opencode"
           }
         ],
         "env_vars": [],

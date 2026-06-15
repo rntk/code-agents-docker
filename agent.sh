@@ -40,7 +40,7 @@ run_agent() {
         7) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kimi:/home/appuser/.kimi" kimi-cli:latest --yolo ;;
         8) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.kiro:/home/ubuntu/.kiro" -v "$HOME/.local/share/kiro-cli:/home/ubuntu/.local/share/kiro-cli" kiro-cli:latest chat --trust-all-tools ;;
         9) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.qwen:/home/node/.qwen" qwen-code:latest --yolo ;;
-        10) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" opencode-cli:latest ;;
+        10) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.opencode:/home/node/.opencode" -v "$HOME/.config/opencode:/home/node/.config/opencode" opencode-cli:latest ;;
         11) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.pi:/home/node/.pi" pi-coding-agent:latest ;;
         12) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.cursor:/home/ubuntu/.cursor" -v "$HOME/.config/cursor:/home/ubuntu/.config/cursor" cursor-cli:latest --sandbox disabled --yolo ;;
         13) execute sudo docker run --rm -it -v "$(pwd):/app" -v "$HOME/.gemini:/home/ubuntu/.gemini" -v "$HOME/.config/Antigravity:/home/ubuntu/.config/Antigravity" -v "$HOME/.config/Antigravity IDE:/home/ubuntu/.config/Antigravity IDE" antigravity-cli:latest --dangerously-skip-permissions ;;
